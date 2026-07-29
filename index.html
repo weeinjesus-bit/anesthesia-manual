@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마취진료지원 매뉴얼 — SNUH</title>
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22%EB%A7%88%EC%B7%A8%EB%A7%A4%EB%89%B4%EC%96%BC%22%2C%22short_name%22%3A%22%EB%A7%88%EC%B7%A8%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F8F9FC%22%2C%22theme_color%22%3A%22%231E3A5F%22%7D">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+:root{
+  --navy:#1E3A5F;--blue:#2563EB;--blue-lt:#DBEAFE;--blue-mid:#93C5FD;
+  --green:#166534;--green-lt:#DCFCE7;
+  --amber:#92400E;--amber-lt:#FEF3C7;
+  --red:#991B1B;--red-lt:#FEE2E2;
+  --purple:#5B21B6;--purple-lt:#EDE9FE;
+  --teal:#0F6E56;--teal-lt:#E1F5EE;
+  --gray:#374151;--gray-m:#6B7280;--gray-l:#F9FAFB;--border:#E5E7EB;
+  --font:'Noto Sans KR',sans-serif;--mono:'Courier New',monospace;
+  --r:12px;--rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:#F0F4F8;color:var(--gray);min-height:100vh}
+
+/* NAV */
+.nav{background:var(--navy);padding:0;display:flex;align-items:stretch;overflow-x:auto;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2);-webkit-overflow-scrolling:touch}
+.nav::-webkit-scrollbar{display:none}
+.nav-brand{color:#fff;font-weight:700;font-size:14px;padding:14px 14px;white-space:nowrap;display:flex;align-items:center;gap:7px;border-right:1px solid rgba(255,255,255,.15);min-width:fit-content}
+.nav-brand svg{flex-shrink:0}
+.nav-scroll{display:flex;align-items:stretch;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-scroll::-webkit-scrollbar{display:none}
+.nav-tab{padding:0 13px;font-size:12px;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;font-weight:500;display:flex;align-items:center;font-family:var(--font);border-top:none;border-left:none;border-right:none;background:transparent}
+.nav-tab:hover{color:#fff}
+.nav-tab.on{color:#fff;border-bottom:3px solid #93C5FD}
+
+/* LAYOUT */
+.main{max-width:960px;margin:0 auto;padding:1.25rem 1rem 5rem}
+.page{display:none}.page.on{display:block}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ec{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.ec:hover{border-color:var(--blue-mid);box-shadow:0 2px 8px rgba(37,99,235,.08)}
+.ec .ch{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
+.ec .cb{display:none;margin-top:.875rem;border-top:1px solid var(--border);padding-top:.875rem}
+.ec .cb.open{display:block}
+.chev{font-size:18px;color:var(--gray-m);transition:transform .2s;flex-shrink:0;margin-top:1px}
+.chev.open{transform:rotate(180deg)}
+
+.ct{font-size:13px;font-weight:700;color:var(--navy)}
+.cd{font-size:12px;color:var(--gray-m);margin-top:2px;line-height:1.45}
+
+/* BADGES */
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:12px;font-weight:700;white-space:nowrap}
+.b-g{background:var(--green-lt);color:#14532D}
+.b-a{background:var(--amber-lt);color:#78350F}
+.b-r{background:var(--red-lt);color:#7F1D1D}
+.b-i{background:var(--blue-lt);color:#1E3A8A}
+.b-t{background:var(--teal-lt);color:#064E3B}
+.b-p{background:var(--purple-lt);color:#3B0764}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem}
+@media(max-width:560px){.g3,.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr 1fr}}
+
+/* STAT CARDS */
+.stat{background:var(--gray-l);border-radius:var(--rs);padding:.75rem 1rem;border:1px solid var(--border)}
+.stat-l{font-size:11px;color:var(--gray-m);margin-bottom:2px}
+.stat-v{font-size:22px;font-weight:700}
+
+/* PROGRESS */
+.pbg{height:5px;background:var(--border);border-radius:3px;margin-top:3px}
+.pf{height:5px;border-radius:3px}
+
+/* LISTS */
+.ul{list-style:none}
+.ul li{font-size:12px;color:var(--gray-m);padding:3px 0;display:flex;gap:7px;line-height:1.55;align-items:flex-start}
+.ul li::before{content:'·';color:var(--blue);font-size:18px;line-height:1.1;flex-shrink:0;font-weight:700}
+.ul li b,.ul li strong{color:var(--gray);font-weight:700}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:6px 8px;background:var(--gray-l);color:var(--gray-m);font-weight:700;font-size:11px;border-bottom:1px solid var(--border)}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--border);color:var(--gray-m);vertical-align:top;line-height:1.5}
+.tbl td:first-child{font-weight:700;color:var(--gray);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+
+/* ALERT BOXES */
+.ibox{background:var(--blue-lt);border-left:3px solid var(--blue);padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;font-size:12px;color:#1E40AF;margin:.5rem 0;line-height:1.55}
+.wbox{background:var(--amber-lt);border-left:3px solid #D97706;padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;font-size:12px;color:var(--amber);margin:.5rem 0;line-height:1.55}
+.dbox{background:var(--red-lt);border-left:3px solid #DC2626;padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;font-size:12px;color:var(--red);margin:.5rem 0;line-height:1.55}
+.tbox{background:var(--teal-lt);border-left:3px solid var(--teal);padding:8px 12px;border-radius:0 var(--rs) var(--rs) 0;font-size:12px;color:#064E3B;margin:.5rem 0;line-height:1.55}
+
+/* SEC TITLE */
+.sec{font-size:14px;font-weight:700;color:var(--navy);margin:1.5rem 0 .75rem;padding-bottom:6px;border-bottom:2px solid var(--blue-lt);display:flex;align-items:center;gap:8px}
+
+/* PILLS */
+.pr{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.875rem}
+.pill{font-size:12px;padding:5px 13px;border-radius:20px;background:var(--gray-l);color:var(--gray-m);cursor:pointer;border:1px solid var(--border);font-weight:500;font-family:var(--font);transition:all .15s}
+.pill.on{background:var(--blue-lt);color:var(--blue);border-color:var(--blue-mid);font-weight:700}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1E3A5F 0%,#1e4a80 100%);border-radius:var(--r);padding:1.75rem 1.5rem;margin-bottom:1.25rem;color:#fff}
+.hero h1{font-size:20px;font-weight:700;margin-bottom:5px}
+.hero p{font-size:12px;opacity:.8;line-height:1.6}
+
+/* CALC */
+.calc-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:.75rem}
+.calc-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.calc-sub{font-size:11px;color:var(--gray-m);margin-bottom:1rem}
+.calc-box{background:var(--gray-l);border-radius:var(--rs);padding:.875rem 1rem;margin-top:.75rem}
+.calc-lbl{font-size:11px;color:var(--gray-m);margin-bottom:4px;font-weight:700}
+.calc-res{font-size:22px;font-weight:700;color:var(--blue);margin-top:4px}
+.calc-unit{font-size:12px;color:var(--gray-m);font-weight:400}
+.calc-note{font-size:11px;color:var(--gray-m);margin-top:4px;line-height:1.5}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.ig3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+@media(max-width:480px){.ig3{grid-template-columns:1fr 1fr}}
+input[type=number],select{width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;color:var(--gray);font-family:var(--font);outline:none;transition:border-color .15s;-webkit-appearance:none}
+input[type=number]:focus,select:focus{border-color:var(--blue)}
+.ilbl{font-size:11px;color:var(--gray-m);margin-bottom:4px;font-weight:700}
+
+/* QUIZ */
+.qcard{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:.75rem}
+.qnum{font-size:11px;color:var(--gray-m);font-weight:700;margin-bottom:5px}
+.qtxt{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;line-height:1.6}
+.qopts{display:flex;flex-direction:column;gap:6px}
+.qopt{padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;cursor:pointer;background:#fff;color:var(--gray-m);text-align:left;transition:all .15s;font-family:var(--font);line-height:1.5}
+.qopt:hover:not(:disabled){border-color:var(--blue-mid);background:var(--blue-lt);color:#1E40AF}
+.qopt.correct{border-color:var(--green);background:var(--green-lt);color:#14532D}
+.qopt.wrong{border-color:#DC2626;background:var(--red-lt);color:var(--red)}
+.qexp{margin-top:10px;font-size:12px;padding:10px 12px;background:var(--gray-l);border-radius:var(--rs);color:var(--gray-m);display:none;line-height:1.6}
+.qexp.show{display:block}
+.score-box{background:var(--blue-lt);border-radius:var(--r);padding:2rem;text-align:center;margin-bottom:1rem}
+.score-num{font-size:52px;font-weight:700;color:var(--blue)}
+.score-lbl{font-size:13px;color:var(--gray-m);margin-top:4px}
+.score-msg{font-size:15px;font-weight:700;margin-top:10px}
+
+/* BUTTONS */
+.btn{padding:9px 20px;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font)}
+.btn-p{background:var(--blue);color:#fff}
+.btn-o{background:transparent;color:var(--gray-m);border:1.5px solid var(--border)}
+.btn-p:hover{background:#1D4ED8}
+.btn-o:hover{background:var(--gray-l)}
+.brow{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap}
+
+/* DEPLOY GUIDE */
+.step-box{display:flex;gap:12px;margin-bottom:1rem;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-t{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.step-d{font-size:12px;color:var(--gray-m);line-height:1.6}
+.code{font-family:var(--mono);font-size:11px;background:var(--gray-l);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;margin:6px 0;white-space:pre;overflow-x:auto;color:var(--gray);line-height:1.6}
+.success-box{background:var(--green-lt);border:1px solid #86EFAC;border-radius:var(--r);padding:1rem;margin-bottom:.75rem}
+.success-t{font-size:13px;font-weight:700;color:#14532D;margin-bottom:4px}
+.success-d{font-size:12px;color:#166534;line-height:1.5}
+
+/* EMG */
+.emg-card{border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:.75rem;cursor:pointer;transition:border-color .15s;background:#fff}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    마취 매뉴얼
+  </div>
+  <div class="nav-scroll">
+    <button class="nav-tab on" onclick="P('home')">홈</button>
+    <button class="nav-tab" onclick="P('cur')">커리큘럼</button>
+    <button class="nav-tab" onclick="P('basic')">기초</button>
+    <button class="nav-tab" onclick="P('mid')">중간년차</button>
+    <button class="nav-tab" onclick="P('adv')">심화</button>
+    <button class="nav-tab" onclick="P('quiz')">퀴즈</button>
+    <button class="nav-tab" onclick="P('calc')">계산기</button>
+    <button class="nav-tab" onclick="P('drugs')">약물</button>
+    <button class="nav-tab" onclick="P('emg')">응급</button>
+    <button class="nav-tab" onclick="P('deploy')" style="color:#93C5FD">배포가이드</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- HOME -->
+<div class="page on" id="page-home">
+  <div class="hero">
+    <h1>🏥 마취진료지원 매뉴얼</h1>
+    <p>서울대학교병원 마취진료지원부서 · 기초 · 중간년차 · 심화 3단계<br>18챕터 · 60문항 퀴즈 · SNUH 실제 프로토콜 약물 계산기</p>
+  </div>
+  <div class="g4">
+    <div class="stat"><div class="stat-l">전체 챕터</div><div class="stat-v" style="color:var(--blue)">18</div></div>
+    <div class="stat"><div class="stat-l">퀴즈 문항</div><div class="stat-v" style="color:var(--green)">60</div></div>
+    <div class="stat"><div class="stat-l">수록 약물</div><div class="stat-v" style="color:var(--amber)">30+</div></div>
+    <div class="stat"><div class="stat-l">응급 프로토콜</div><div class="stat-v" style="color:var(--red)">7</div></div>
+  </div>
+  <div style="margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-m);margin-bottom:3px"><span>기초 과정 (6챕터)</span><span class="badge b-g">신규~1년차</span></div>
+    <div class="pbg"><div class="pf" style="width:100%;background:var(--green)"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-m);margin:8px 0 3px"><span>중간년차 과정 (6챕터)</span><span class="badge b-a">2~4년차</span></div>
+    <div class="pbg"><div class="pf" style="width:66%;background:#D97706"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-m);margin:8px 0 3px"><span>심화 과정 (6챕터)</span><span class="badge b-r">5년차↑</span></div>
+    <div class="pbg"><div class="pf" style="width:33%;background:#DC2626"></div></div>
+  </div>
+  <div class="g2">
+    <div class="card ec" onclick="P('calc')" style="text-align:center;padding:1.25rem .75rem">
+      <div style="font-size:28px;margin-bottom:6px">🧮</div>
+      <div class="ct">약물 계산기</div>
+      <div class="cd">SNUH 실제 프로토콜 반영<br>Ropivacaine · Precedex · 소아</div>
+    </div>
+    <div class="card ec" onclick="P('emg')" style="text-align:center;padding:1.25rem .75rem">
+      <div style="font-size:28px;margin-bottom:6px">🚨</div>
+      <div class="ct">응급 프로토콜</div>
+      <div class="cd">즉각 대응 7종<br>MH · 아나필락시스 · CICO</div>
+    </div>
+    <div class="card ec" onclick="P('quiz')" style="text-align:center;padding:1.25rem .75rem">
+      <div style="font-size:28px;margin-bottom:6px">✏️</div>
+      <div class="ct">단계별 퀴즈</div>
+      <div class="cd">60문항 자가 평가<br>정답 · 해설 포함</div>
+    </div>
+    <div class="card ec" onclick="P('deploy')" style="text-align:center;padding:1.25rem .75rem;border:2px solid var(--blue-mid)">
+      <div style="font-size:28px;margin-bottom:6px">🚀</div>
+      <div class="ct" style="color:var(--blue)">앱 배포 가이드</div>
+      <div class="cd">Netlify 30초 배포<br>GitHub Pages 설정</div>
+    </div>
+  </div>
+</div>
+
+<!-- CURRICULUM -->
+<div class="page" id="page-cur">
+  <div class="sec">전체 커리큘럼 — 18챕터</div>
+  <div id="cur-list"></div>
+</div>
+
+<!-- BASIC -->
+<div class="page" id="page-basic">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem"><span class="badge b-g">초급</span><span style="font-size:12px;color:var(--gray-m)">신규 ~ 1년차</span></div>
+  <div id="cards-basic"></div>
+  <button class="btn btn-p" onclick="startQuiz('basic')">기초 퀴즈 시작 →</button>
+</div>
+
+<!-- MID -->
+<div class="page" id="page-mid">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem"><span class="badge b-a">중급</span><span style="font-size:12px;color:var(--gray-m)">2~4년차</span></div>
+  <div id="cards-mid"></div>
+  <button class="btn btn-p" onclick="startQuiz('mid')">중급 퀴즈 시작 →</button>
+</div>
+
+<!-- ADV -->
+<div class="page" id="page-adv">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem"><span class="badge b-r">고급</span><span style="font-size:12px;color:var(--gray-m)">5년차 이상</span></div>
+  <div id="cards-adv"></div>
+  <button class="btn btn-p" onclick="startQuiz('adv')">심화 퀴즈 시작 →</button>
+</div>
+
+<!-- QUIZ -->
+<div class="page" id="page-quiz">
+  <div id="quiz-sel">
+    <div class="sec">단계 선택</div>
+    <div class="g3">
+      <div class="card ec" onclick="startQuiz('basic')" style="text-align:center">
+        <div style="font-size:26px;margin-bottom:6px">📝</div>
+        <div class="ct">기초</div><div class="cd">20문항 · 목표 80점</div>
+        <div style="margin-top:8px"><span class="badge b-g">신규~1년차</span></div>
+      </div>
+      <div class="card ec" onclick="startQuiz('mid')" style="text-align:center">
+        <div style="font-size:26px;margin-bottom:6px">📊</div>
+        <div class="ct">중간년차</div><div class="cd">20문항 · 목표 85점</div>
+        <div style="margin-top:8px"><span class="badge b-a">2~4년차</span></div>
+      </div>
+      <div class="card ec" onclick="startQuiz('adv')" style="text-align:center">
+        <div style="font-size:26px;margin-bottom:6px">🎯</div>
+        <div class="ct">심화</div><div class="cd">20문항 · 목표 90점</div>
+        <div style="margin-top:8px"><span class="badge b-r">5년차↑</span></div>
+      </div>
+    </div>
+    <div id="prev-scores"></div>
+  </div>
+  <div id="quiz-area" style="display:none">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-m);margin-bottom:5px;font-weight:700">
+      <span id="q-pos">1 / 20</span><span id="q-live" style="color:var(--blue)">0점</span>
+    </div>
+    <div class="pbg" style="margin-bottom:1.25rem"><div class="pf" id="q-bar" style="width:5%;background:var(--blue)"></div></div>
+    <div id="q-content"></div>
+    <div class="brow">
+      <button class="btn btn-p" id="q-next" onclick="nextQ()" style="display:none">다음 문제 →</button>
+      <button class="btn btn-o" onclick="endQuiz()">종료</button>
+    </div>
+  </div>
+  <div id="quiz-result" style="display:none">
+    <div class="score-box">
+      <div class="score-num" id="res-score">0</div>
+      <div class="score-lbl" id="res-lbl">점 / 100점</div>
+      <div class="score-msg" id="res-msg"></div>
+    </div>
+    <div id="res-det"></div>
+    <div class="brow">
+      <button class="btn btn-p" onclick="retryQuiz()">다시 풀기</button>
+      <button class="btn btn-o" onclick="showQSel()">단계 변경</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALC -->
+<div class="page" id="page-calc">
+  <div class="sec">약물 계산기</div>
+  <div class="ibox" style="margin-bottom:1rem">⚠ 모든 계산 결과는 참고용입니다. 실제 투여 전 처방의와 반드시 확인하세요.</div>
+  <div class="pr" id="calc-pills">
+    <span class="pill on" onclick="showCalc('civ',this)">CIV 속도</span>
+    <span class="pill" onclick="showCalc('ropiva',this)">Ropivacaine 희석</span>
+    <span class="pill" onclick="showCalc('precedex',this)">Precedex</span>
+    <span class="pill" onclick="showCalc('transamine',this)">Transamine</span>
+    <span class="pill" onclick="showCalc('remimazolam',this)">Remimazolam</span>
+    <span class="pill" onclick="showCalc('mabl',this)">MABL</span>
+    <span class="pill" onclick="showCalc('sug',this)">Sugammadex</span>
+    <span class="pill" onclick="showCalc('pedi',this)">소아 약물</span>
+    <span class="pill" onclick="showCalc('dil',this)">일반 희석</span>
+  </div>
+
+  <!-- CIV -->
+  <div id="calc-civ" class="calc-wrap">
+    <div class="calc-title">CIV 주입 속도 — SNUH 프로토콜</div>
+    <div class="calc-sub">목표 용량(mcg/kg/min) → 주입 속도(mL/h)</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="civ-wt" value="65" oninput="calcCIV()"></div>
+      <div><div class="ilbl">약물 선택</div>
+        <select id="civ-drug" onchange="updateCIV()">
+          <option value="NE_20">Norepinephrine 20 mcg/mL (1@ D5W 200cc)</option>
+          <option value="Epi_20">Epinephrine 20 mcg/mL (1@ NS 49cc)</option>
+          <option value="Phe_100">Phenylephrine 100 mcg/mL (1v NS 99cc)</option>
+          <option value="Dob_1">Dobutamine 1 mg/mL (0.8@ D5W 196cc)</option>
+          <option value="Dob_2">Dobutamine 2 mg/mL (premix)</option>
+          <option value="NG_02">Nitroglycerin 0.2 mg/mL (1v D5W 200cc)</option>
+          <option value="SNP_02">Nitroprusside 0.2 mg/mL (1v D5W 248cc)</option>
+          <option value="Dop_1">Dopamine 1 mg/mL (1@ D5W 195cc)</option>
+          <option value="Dop_2">Dopamine 2 mg/mL (premix)</option>
+          <option value="Mil_02">Milrinone 0.2 mg/mL (1@ NS 40cc)</option>
+          <option value="Esm_10">Esmolol 10 mg/mL (원액 사용)</option>
+          <option value="Iso_4">Isoproterenol 4 mcg/mL (4@ D5W 196cc)</option>
+          <option value="Vaso_02">Vasopressin 0.2 unit/mL (1cc NS 99cc)</option>
+          <option value="PPF_20">Propofol (TIVA) 20 mg/mL</option>
+          <option value="Remi_20">Remifentanil 20 mcg/mL</option>
+          <option value="SuF_5">Sufentanil 5 mcg/mL</option>
+        </select>
+      </div>
+    </div>
+    <div class="ig">
+      <div><div class="ilbl">목표 용량</div><input type="number" id="civ-dose" value="0.05" step="0.01" oninput="calcCIV()"></div>
+      <div><div class="ilbl" id="civ-unit-lbl">단위: mcg/kg/min</div><div id="civ-range" style="font-size:11px;color:var(--gray-m);margin-top:8px"></div></div>
+    </div>
+    <div class="calc-box">
+      <div class="calc-lbl">주입 속도</div>
+      <div class="calc-res" id="civ-res">— <span class="calc-unit">mL/h</span></div>
+      <div class="calc-note" id="civ-note"></div>
+    </div>
+  </div>
+
+  <!-- ROPIVACAINE -->
+  <div id="calc-ropiva" class="calc-wrap" style="display:none">
+    <div class="calc-title">Ropivacaine 희석 계산기</div>
+    <div class="calc-sub">원액 0.75% (7.5 mg/mL) → 원하는 농도로 희석</div>
+    <div class="tbox">SNUH 프로토콜: IV 금지. 0.75% 원액 20 mL 제형 사용.</div>
+    <div class="ig">
+      <div><div class="ilbl">만들고 싶은 총량 (mL)</div><input type="number" id="ro-total" value="40" oninput="calcRopiva()"></div>
+      <div><div class="ilbl">원하는 농도 (%)</div>
+        <select id="ro-conc" onchange="calcRopiva()">
+          <option value="0.25">0.25% (FNB/FICB 일반)</option>
+          <option value="0.375">0.375% (TAP block)</option>
+          <option value="0.5" selected>0.5% (FNB 수술용)</option>
+          <option value="0.75">0.75% (원액)</option>
+          <option value="custom">직접 입력</option>
+        </select>
+      </div>
+    </div>
+    <div id="ro-custom-row" style="display:none;margin-bottom:8px">
+      <div class="ilbl">농도 직접 입력 (%)</div>
+      <input type="number" id="ro-custom" value="0.2" step="0.05" oninput="calcRopiva()">
+    </div>
+    <div class="g2">
+      <div class="calc-box"><div class="calc-lbl">0.75% 원액 (mL)</div><div class="calc-res" id="ro-orig">— <span class="calc-unit">mL</span></div></div>
+      <div class="calc-box"><div class="calc-lbl">추가 NS (mL)</div><div class="calc-res" id="ro-ns">— <span class="calc-unit">mL</span></div></div>
+    </div>
+    <div class="calc-box">
+      <div class="calc-lbl">Block별 표준 용량 (SNUH 기준)</div>
+      <table class="tbl" style="margin-top:6px">
+        <tr><th>Block</th><th>농도</th><th>용량</th><th>혼합법</th></tr>
+        <tr><td>FNB / ACB</td><td>0.5%</td><td>10 mL ×2</td><td>0.75% 6.7 mL + NS 3.3 mL</td></tr>
+        <tr><td>FICB (G/A)</td><td>0.25%</td><td>20 mL ×2</td><td>0.75% 6.7 mL + NS 13.3 mL</td></tr>
+        <tr><td>TAP block</td><td>0.375%</td><td>20 mL ×2</td><td>0.75% 10 mL + NS 10 mL</td></tr>
+        <tr><td>BPB + G/A</td><td>0.5%</td><td>10 mL ×1</td><td>0.75% 6.7 mL + NS 3.3 mL</td></tr>
+        <tr><td>Popliteal sciatic</td><td>0.75%</td><td>10 mL ×2</td><td>원액 사용</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRECEDEX -->
+  <div id="calc-precedex" class="calc-wrap" style="display:none">
+    <div class="calc-title">Dexmedetomidine (Precedex) 계산기</div>
+    <div class="calc-sub">400 mcg/100 mL (4 mcg/mL) — OS(수술실) 프로토콜</div>
+    <div class="tbox">시린지 펌프로 원액 사용. 로딩 시 타이머 반드시 설정!</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="pdx-wt" value="65" oninput="calcPrecedex()"></div>
+      <div><div class="ilbl">환자 연령대</div>
+        <select id="pdx-age" onchange="calcPrecedex()">
+          <option value="young">젊고 건강 (1 mcg/kg)</option>
+          <option value="mid" selected>60~70세 (0.67 mcg/kg)</option>
+          <option value="old">70세 이상 (0.5 mcg/kg)</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="calc-box">
+        <div class="calc-lbl">로딩 (10분간) — 타이머!</div>
+        <div class="calc-res" id="pdx-load">— <span class="calc-unit">mL</span></div>
+        <div class="calc-note" id="pdx-load-rate">주입속도: — mL/h</div>
+      </div>
+      <div class="calc-box">
+        <div class="calc-lbl">이후 지속 주입</div>
+        <div class="calc-res" id="pdx-cont">— <span class="calc-unit">mL/h</span></div>
+        <div class="calc-note" id="pdx-cont-rate"></div>
+      </div>
+    </div>
+    <div class="ibox">로딩 후 서맥·저혈압 주의. 수술 종료 1시간 전 감량 고려.</div>
+  </div>
+
+  <!-- TRANSAMINE -->
+  <div id="calc-transamine" class="calc-wrap" style="display:none">
+    <div class="calc-title">Tranexamic Acid (Transamine) 계산기</div>
+    <div class="calc-sub">심장방 외 일반 프로토콜: 90 mL NS + 500 mg ×2 → 10 mg/mL</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="trx-wt" value="65" oninput="calcTransamine()"></div>
+      <div><div class="ilbl">프로토콜</div>
+        <select id="trx-type" onchange="calcTransamine()">
+          <option value="general">일반 (10 mg/mL)</option>
+          <option value="heart">심장방 (50 mg/mL, 4v + NS 20cc)</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="calc-box">
+        <div class="calc-lbl">로딩 속도 (20분간)</div>
+        <div class="calc-res" id="trx-load">— <span class="calc-unit">mL/h</span></div>
+        <div class="calc-note" id="trx-load-mg">로딩 용량: — mg (10 mg/kg)</div>
+      </div>
+      <div class="calc-box">
+        <div class="calc-lbl">지속 주입 (수술 종료까지)</div>
+        <div class="calc-res" id="trx-cont">— <span class="calc-unit">mL/h</span></div>
+        <div class="calc-note">1 mg/kg/hr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REMIMAZOLAM -->
+  <div id="calc-remimazolam" class="calc-wrap" style="display:none">
+    <div class="calc-title">Remimazolam 계산기</div>
+    <div class="calc-sub">50 mg + NS 50 mL (1 mg/mL) 또는 20 mg + NS 20 mL</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="rmz-wt" value="60" oninput="calcRemimazolam()"></div>
+      <div><div class="ilbl">사용 목적</div>
+        <select id="rmz-type" onchange="calcRemimazolam()">
+          <option value="induction">전신마취 유도</option>
+          <option value="maint">전신마취 유지</option>
+          <option value="sedation">단시간 시술 진정</option>
+        </select>
+      </div>
+    </div>
+    <div class="calc-box">
+      <div class="calc-lbl">계산 결과</div>
+      <div id="rmz-res" style="font-size:13px;color:var(--gray);line-height:1.8;margin-top:6px">체중을 입력하세요.</div>
+    </div>
+  </div>
+
+  <!-- MABL -->
+  <div id="calc-mabl" class="calc-wrap" style="display:none">
+    <div class="calc-title">MABL 최대허용출혈량</div>
+    <div class="calc-sub">EBV × (Hct초기 − Hct목표) / Hct초기</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="mabl-wt" value="65" oninput="calcMABL()"></div>
+      <div><div class="ilbl">성별</div><select id="mabl-sex" onchange="calcMABL()"><option value="75">남성 (75 mL/kg)</option><option value="65">여성 (65 mL/kg)</option></select></div>
+    </div>
+    <div class="ig">
+      <div><div class="ilbl">초기 Hct (%)</div><input type="number" id="mabl-h0" value="42" oninput="calcMABL()"></div>
+      <div><div class="ilbl">목표 Hct (%)</div><input type="number" id="mabl-ht" value="30" oninput="calcMABL()"></div>
+    </div>
+    <div class="g2">
+      <div class="calc-box"><div class="calc-lbl">EBV</div><div class="calc-res" id="mabl-ebv">4,875 <span class="calc-unit">mL</span></div></div>
+      <div class="calc-box"><div class="calc-lbl">MABL</div><div class="calc-res" id="mabl-res">1,393 <span class="calc-unit">mL</span></div></div>
+    </div>
+  </div>
+
+  <!-- SUGAMMADEX -->
+  <div id="calc-sug" class="calc-wrap" style="display:none">
+    <div class="calc-title">Sugammadex (Bridion)</div>
+    <div class="calc-sub">Rocuronium / Vecuronium 역전 — 200 mg/2 mL 제형</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="sug-wt" value="65" oninput="calcSug()"></div>
+      <div><div class="ilbl">역전 종류</div>
+        <select id="sug-tof" onchange="calcSug()">
+          <option value="2">일반 역전 (TOF 2↑) — 2 mg/kg</option>
+          <option value="4">심부차단 역전 — 4 mg/kg</option>
+          <option value="16">즉각 역전 (RSI 직후) — 16 mg/kg</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="calc-box"><div class="calc-lbl">필요 용량</div><div class="calc-res" id="sug-mg">130 <span class="calc-unit">mg</span></div></div>
+      <div class="calc-box"><div class="calc-lbl">주입량</div><div class="calc-res" id="sug-ml">1.3 <span class="calc-unit">mL</span></div></div>
+    </div>
+    <div class="ibox">소아 2세 이상 사용 가능. 2세 미만은 laryngospasm·서맥 주의.</div>
+  </div>
+
+  <!-- PEDI -->
+  <div id="calc-pedi" class="calc-wrap" style="display:none">
+    <div class="calc-title">소아 약물 용량 계산기</div>
+    <div class="calc-sub">SNUH 소아마취 프로토콜 기준</div>
+    <div class="ig">
+      <div><div class="ilbl">체중 (kg)</div><input type="number" id="pedi-wt" value="20" oninput="calcPedi()"></div>
+      <div><div class="ilbl">나이 (세)</div><input type="number" id="pedi-age" value="7" oninput="calcPedi()"></div>
+    </div>
+    <div class="calc-box" style="margin-bottom:8px">
+      <div class="calc-lbl">ETT 크기 (무커프)</div>
+      <div class="calc-res" id="pedi-ett">— <span class="calc-unit">mm ID</span></div>
+      <div class="calc-note" id="pedi-depth">삽관 깊이: —</div>
+    </div>
+    <div id="pedi-table"></div>
+    <div class="wbox">소아 약물 용량은 반드시 체중 기반 독립 계산. 성인 환산 절대 금지.</div>
+  </div>
+
+  <!-- DIL -->
+  <div id="calc-dil" class="calc-wrap" style="display:none">
+    <div class="calc-title">일반 희석 계산기</div>
+    <div class="ig">
+      <div><div class="ilbl">원액 농도 (mg/mL)</div><input type="number" id="dil-c" value="50" oninput="calcDil()"></div>
+      <div><div class="ilbl">사용 원액 (mL)</div><input type="number" id="dil-v" value="4" oninput="calcDil()"></div>
+    </div>
+    <div><div class="ilbl">희석 후 총 용량 (mL)</div><input type="number" id="dil-t" value="50" oninput="calcDil()" style="margin-bottom:8px"></div>
+    <div class="g2">
+      <div class="calc-box"><div class="calc-lbl">희석 후 농도</div><div class="calc-res" id="dil-res">4.000 <span class="calc-unit">mg/mL</span></div></div>
+      <div class="calc-box"><div class="calc-lbl">총 약물량</div><div class="calc-res" id="dil-tot">200 <span class="calc-unit">mg</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DRUGS -->
+<div class="page" id="page-drugs">
+  <div class="sec">약물 사전</div>
+  <div class="pr" id="drug-pills">
+    <span class="pill on" onclick="filterDrug('all',this)">전체</span>
+    <span class="pill" onclick="filterDrug('iv',this)">정맥마취제</span>
+    <span class="pill" onclick="filterDrug('opioid',this)">오피오이드</span>
+    <span class="pill" onclick="filterDrug('nmb',this)">근이완제</span>
+    <span class="pill" onclick="filterDrug('vaso',this)">혈관작용제</span>
+    <span class="pill" onclick="filterDrug('reversal',this)">역전제</span>
+    <span class="pill" onclick="filterDrug('emgd',this)">응급약물</span>
+  </div>
+  <div id="drug-list"></div>
+</div>
+
+<!-- EMG -->
+<div class="page" id="page-emg">
+  <div class="dbox" style="margin-bottom:1rem;font-weight:700;font-size:13px">🚨 응급 상황 — 즉각 대응 프로토콜. 주저하지 마세요.</div>
+  <div class="pr" id="emg-pills">
+    <span class="pill on" onclick="filterEmg('all',this)">전체</span>
+    <span class="pill" onclick="filterEmg('drug',this)">약물 반응</span>
+    <span class="pill" onclick="filterEmg('airway',this)">기도</span>
+    <span class="pill" onclick="filterEmg('cv',this)">심혈관</span>
+  </div>
+  <div id="emg-list"></div>
+</div>
+
+<!-- DEPLOY GUIDE -->
+<div class="page" id="page-deploy">
+  <div class="sec">앱 배포 가이드</div>
+
+  <div class="success-box">
+    <div class="success-t">✅ 이 파일 자체가 완성된 앱입니다!</div>
+    <div class="success-d">index.html 하나로 모든 기능이 작동합니다. 아래 두 방법 중 하나로 바로 배포하세요.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="ct" style="margin-bottom:1rem;font-size:15px">방법 1 — Netlify Drop (30초, 회원가입 불필요)</div>
+
+    <div class="step-box">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-t">이 파일 다운로드</div>
+        <div class="step-d">위 Claude 다운로드 버튼 클릭 → 바탕화면에 <strong>index.html</strong>로 저장</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-t">Netlify Drop 접속</div>
+        <div class="step-d">브라우저 주소창에 아래 주소 입력:</div>
+        <div class="code">app.netlify.com/drop</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-t">파일 드래그 앤 드롭</div>
+        <div class="step-d">index.html 파일을 Netlify Drop 페이지 영역으로 끌어다 놓기<br>→ 10초 후 URL 자동 생성!</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-t">URL 복사해서 공유</div>
+        <div class="step-d">생성된 URL을 카카오톡, 이메일로 팀원들과 공유<br>스마트폰에서 <strong>홈화면에 추가</strong>하면 앱처럼 사용 가능</div>
+        <div class="code">예시: amazing-name-123456.netlify.app</div>
+      </div>
+    </div>
+    <div class="tbox">나중에 Netlify 회원가입하면 URL을 anesthesia-manual.netlify.app 처럼 바꿀 수 있습니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="margin-bottom:1rem;font-size:15px">방법 2 — GitHub Pages (무료 영구 도메인)</div>
+
+    <div class="step-box">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-t">GitHub 무료 가입</div>
+        <div class="step-d">github.com → Sign up → 이메일 인증</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-t">새 저장소 만들기</div>
+        <div class="step-d">+ 버튼 → New repository</div>
+        <div class="code">이름: anesthesia-manual
+공개: Public (반드시 선택)
+README: 체크 후 Create</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-t">index.html 업로드</div>
+        <div class="step-d">Add file → Upload files → index.html 드래그 → Commit changes</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-t">GitHub Pages 활성화</div>
+        <div class="code">Settings → Pages → Source: Deploy from a branch
+Branch: main → Save</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-t">2~3분 후 URL 확인</div>
+        <div class="code">https://[내 아이디].github.io/anesthesia-manual</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct" style="margin-bottom:.75rem;font-size:15px">파일 업로드 방법 (Claude에 파일 올리기)</div>
+    <div class="step-box">
+      <div class="step-num">💻</div>
+      <div class="step-body">
+        <div class="step-t">PC / 맥</div>
+        <div class="step-d">Claude 채팅창 왼쪽 하단 <strong>📎 클립 아이콘</strong> 클릭 → 파일 선택<br>또는 파일을 채팅창으로 직접 드래그 앤 드롭</div>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">📱</div>
+      <div class="step-body">
+        <div class="step-t">스마트폰 (iOS/Android)</div>
+        <div class="step-d">채팅창 오른쪽 <strong>+ 버튼</strong> 탭 → 파일 / 사진 선택<br>파일 앱 또는 갤러리에서 직접 공유 버튼 → Claude로 공유도 가능</div>
+      </div>
+    </div>
+    <div class="ibox">지원 파일: PDF, Word(.docx), Excel(.xlsx), 이미지(JPG/PNG), CSV, 텍스트 등 대부분의 형식 지원</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+const CUR=[
+  {lv:'basic',n:'1. 마취의 기본 개념',sub:'전신/부위 마취 종류 및 원리',period:'1~2주',
+   items:['전신마취 3요소: 최면·진통·근이완','부위마취: 척추·경막외·신경차단','마취 3단계: 유도→유지→각성','ASA 분류 I~VI','기타: 진정, 국소마취']},
+  {lv:'basic',n:'2. 마취 전 준비',sub:'수술 전 체크리스트 및 기구 셋업',period:'2~3주',
+   warn:'Time-out 반드시 시행',
+   items:['금식: 고형식 8h / 맑은 액체 2h','마취기계 점검: 회로·가스·흡인기','ETT/LMA 크기 확인','IV·A-line·C-line 준비','응급약물: Atropine·Ephedrine·Propofol']},
+  {lv:'basic',n:'3. 기본 활력징후 모니터링',sub:'필수 모니터 5종 해석 및 알람 기준',period:'2주',
+   table:{h:['항목','정상 범위','알람 기준'],rows:[['혈압 SBP','90~140 mmHg','<80 or >180'],['심박수','60~100 bpm','<50 or >120'],['SpO₂','≥97%','<94%'],['EtCO₂','35~45 mmHg','<30 or >50'],['체온','36~37.5°C','<35°C']]}},
+  {lv:'basic',n:'4. 기본 마취약물',sub:'유도·유지 핵심 약물 숙지',period:'3~4주',
+   items:['Propofol: 유도 1~2 mg/kg / TIVA 100~200 mcg/kg/min (20 mg/mL)','Midazolam: 전투약 0.02~0.05 mg/kg / 최대 5 mg','Fentanyl: 유도 1~2 mcg/kg / Sufentanil: 0.5~1.5 mcg/kg/hr','Remifentanil: 0.1~1 mcg/kg/min TIVA (20 mcg/mL)','Succinylcholine: RSI 1~1.5 mg/kg (소아 2 mg/kg)']},
+  {lv:'basic',n:'5. 기도 관리 기초',sub:'ETT·LMA 삽관 및 확인',period:'3~4주',
+   danger:'식도삽관 의심 즉시 발관 후 재삽관',
+   items:['ETT: 여성 7.0~7.5 / 남성 7.5~8.0 mm','삽관 깊이: 여성 19~21 / 남성 21~23 cm','커프 압력: 20~30 cmH₂O','LMA: #3(30~50) · #4(50~70) · #5(>70 kg)','확인: EtCO₂ 파형+양측 호흡음+흉부 상승']},
+  {lv:'basic',n:'6. 각성 및 회복 관리',sub:'발관 기준 · PACU · Aldrete Score',period:'2~3주',
+   items:['발관 기준: TOF ratio>0.9 + 의식 회복 + 자발호흡','PACU Report: 마취방법·약물·출혈량·합병증','Aldrete Score ≥8: 회복실 퇴실 기준','PONV: Ondansetron 4 mg + Dexamethasone 5 mg']},
+  {lv:'mid',n:'7. TIVA 완전정맥마취',sub:'TCI 기반 Propofol + Remifentanil · BIS',period:'4~6주',
+   info:'TIVA 중단 후 각성 시간 BIS>60 확인 필수',
+   items:['Propofol TCI: 유도 Ce 4~6 → 유지 Ce 2~4 mcg/mL (20 mg/mL)','Remifentanil TCI: 유도 Ce 3~5 → 유지 Ce 2~4 ng/mL (20 mcg/mL)','Sufentanil CIV: 0.5~1.5 mcg/kg/hr (5 mcg/mL)','BIS 목표: 마취 40~60 / 진정 60~70','Remimazolam: 유도 6 mg/kg/hr → 유지 1 mg/kg/hr (1 mg/mL)']},
+  {lv:'mid',n:'8. 혈관작용제 관리',sub:'SNUH 희석 프로토콜 포함',period:'4~6주',
+   table:{h:['약물','SNUH 희석','농도','용량 범위'],rows:[
+     ['Norepinephrine','1@ + D5W 196cc','20 mcg/mL','0.01~0.2 mcg/kg/min'],
+     ['Epinephrine','1cc + NS 49cc','20 mcg/mL','0.01~0.2 mcg/kg/min'],
+     ['Phenylephrine','1v + NS 99cc','100 mcg/mL','0.25~1 mcg/kg/min'],
+     ['Dobutamine','0.8@ + D5W 196cc','1 mg/mL','2~20 mcg/kg/min'],
+     ['Nitroglycerin','1v + D5W 200cc','0.2 mg/mL','0.5~10 mcg/kg/min'],
+     ['Vasopressin','1cc + NS 99cc','0.2 unit/mL','0.01~0.04 unit/kg/hr'],
+   ]}},
+  {lv:'mid',n:'9. 수술별 마취 셋업',sub:'Robot·복강경·Heart · Lung TPL',period:'6~8주',
+   warn:'Trendelenburg 장시간 → 안압·뇌압 상승 주의',
+   items:['Robot Prostatectomy: Trendelenburg + A-line + CO₂ 주의','Robot GY: Steep Trendelenburg + 안압 상승','Heart 수술: Transamine 4v + NS 20cc (50 mg/mL), NE·NTG·Dobutamine','Lung TPL: DLT (남37Fr/여35Fr) + Milrinone loading + 4 pump','MAZE/AAA: DLT + Arrow(T) + AMK(D) + Level-I']},
+  {lv:'mid',n:'10. 수혈 및 수액 관리',sub:'EBV·MABL · 수혈 기준',period:'3~4주',
+   items:['EBV: 남성 ×75 / 여성 ×65 mL/kg / 신생아 90 mL/kg','MABL = EBV × (Hct초기 - Hct목표) / Hct초기','수혈 기준: Hb<7 일반 / <10 심혈관 고위험','Transamine: 10 mg/kg loading 20분 → 1 mg/kg/hr 지속']},
+  {lv:'mid',n:'11. 신경근차단 모니터링',sub:'TOF · Neostigmine · Sugammadex',period:'3~4주',
+   items:['TOF ratio >0.9: 충분한 회복 기준','Neostigmine: TOF count ≥2 + Atropine 필수','Sugammadex: 일반 2 mg/kg / 심부 4 / 즉각 16 mg/kg','소아 2세 이상: Sugammadex 우선 (Neostigmine 대체)']},
+  {lv:'mid',n:'12. 척추·경막외마취 보조',sub:'부위마취 · Ropivacaine 혼합',period:'4~6주',
+   warn:'Total Spinal 발생 즉각 기도 확보 및 혈압 지지',
+   items:['척추마취: 0.5% Heavy Bupivacaine 10~15 mg','경막외: Ropivacaine 0.2% + Fentanyl 2~4 mcg/mL','Ropivacaine 0.75% 20 mL 원액 → 농도별 희석 계산 (계산기 탭 참조)','PDPH 예방: 25G↑ Pencil-point 바늘 사용']},
+  {lv:'adv',n:'13. 심혈관계 고위험 마취',sub:'CVP · Swan-Ganz · CO/CI · 강심제',period:'8~12주',
+   items:['CVP 정상 2~8 mmHg / PAP 15~25/8~15 mmHg','Dobutamine CIV 2.5~10 mcg/kg/min (1 mg/mL)','Milrinone: 50 mcg/kg loading 10분 → 0.375~0.75 mcg/kg/min','Vasopressin: 0.01~0.04 unit/min 고정 (패혈성 쇼크 보조)','Isoproterenol: 0.5~10 mcg/min CIV (서맥·AV block)']},
+  {lv:'adv',n:'14. 마취 응급 프로토콜',sub:'아나필락시스·MH·LAST·CICO',period:'6~8주',
+   danger:'즉각 대응이 생존을 결정합니다',
+   items:['아나필락시스: Epinephrine 0.3 mg IM 즉시','MH: 트리거 중단 + Dantrolene 2.5 mg/kg IV 반복','LAST: 20% Intralipid 1.5 mL/kg IV bolus','후두경련: 양압 O₂ → Succinylcholine 0.1~1.5 mg/kg','CICO: 즉각 Cricothyrotomy — 주저 금지']},
+  {lv:'adv',n:'15. 어려운 기도 관리',sub:'Difficult Airway Algorithm',period:'8~10주',
+   danger:'CICO = 즉각 외과적 기도 확보',
+   items:['Mallampati · LEMON · 갑상연골 거리 평가','C-MAC / GlideScope / FOB 준비','Awake Intubation: 국소마취 후 섬유광학','플랜 A→B→C→D 사전 계획 필수']},
+  {lv:'adv',n:'16. 초음파 유도 신경차단 보조',sub:'USG 기반 · LAST 예방',period:'6~8주',
+   info:'초음파 유도 시 약물 층 분리 확인 필수',
+   items:['FNB/ACB: 0.5% Ropivacaine 10 mL × 2','FICB: 0.25% Ropivacaine 20 mL × 2','TAP block: 0.375% Ropivacaine 20 mL × 2','BPB (수술용): 0.75% Ropivacaine 10 mL × 2','LAST 예방: 천천히 + 반복 흡인 확인']},
+  {lv:'adv',n:'17. 특수 환자 마취',sub:'소아·노인·비만·임산부',period:'8~10주',
+   warn:'소아 약물 용량은 반드시 체중 기반 독립 계산',
+   items:['소아 ETT: (나이/4)+4 mm / Paedfusor TCI model','소아 PPF TCI: 1% PPF Paedfusor (5kg 이하 Dose rate)','소아 RemiFTN: 15세 미만 Dose rate / 이상 Minto (effect)','노인: 약물 감수성↑ → 저용량 / Precedex 0.5 mcg/kg (70세↑)','임산부: 위 배출 지연 → RSI + 좌측 자궁 변위']},
+  {lv:'adv',n:'18. 통증 관리 심화',sub:'PCA · CEA · OFA · Remimazolam',period:'6~8주',
+   items:['IV-PCA: Fentanyl·Morphine / Basal-Bolus-Lockout 설정','CEA: Ropivacaine 0.2% + Fentanyl 지속 주입','Remimazolam OA: 0.05 mg/kg load → 0.3 mg/kg/hr CIV','OFA: Ketamine·Dexmedetomidine·Lidocaine IV 조합','Precedex PCA 보조: 서맥·저혈압 주의']},
+];
+
+const QUIZ={
+  basic:[
+    {area:'마취 기본',q:'전신마취의 3요소가 올바르게 짝지어진 것은?',opts:['최면-진통-근이완','의식-진통-호흡','최면-기억-근이완','진정-진통-반사'],ans:0,exp:'전신마취 3요소: 최면(Hypnosis)·진통(Analgesia)·근이완(Muscle relaxation)'},
+    {area:'마취 기본',q:'성인 고형식 금식 시간은?',opts:['4시간','6시간','8시간','12시간'],ans:2,exp:'고형식 8시간, 맑은 액체 2시간 (ASA 가이드라인)'},
+    {area:'기도관리',q:'성인 남성 ETT 내경으로 적절한 것은?',opts:['6.0~6.5 mm','7.0~7.5 mm','7.5~8.0 mm','8.0~8.5 mm'],ans:2,exp:'남성 7.5~8.0 mm, 여성 7.0~7.5 mm'},
+    {area:'기도관리',q:'기관삽관 후 가장 먼저 확인해야 하는 것은?',opts:['흉부 X-ray','EtCO₂ 파형','혈압 측정','SpO₂ 측정'],ans:1,exp:'EtCO₂ 파형 확인 — 식도삽관 시 없음'},
+    {area:'모니터링',q:'정상 성인의 EtCO₂ 범위는?',opts:['25~30 mmHg','30~35 mmHg','35~45 mmHg','45~55 mmHg'],ans:2,exp:'정상 EtCO₂: 35~45 mmHg'},
+    {area:'모니터링',q:'ETT 커프 압력의 적절한 범위는?',opts:['5~10 cmH₂O','10~20 cmH₂O','20~30 cmH₂O','30~40 cmH₂O'],ans:2,exp:'커프 압력 20~30 cmH₂O'},
+    {area:'약물',q:'Propofol 유도 용량은?',opts:['0.5~1 mg/kg','1~2 mg/kg','2~3 mg/kg','3~4 mg/kg'],ans:1,exp:'Propofol 유도: 1~2 mg/kg IV. 노인 0.5~1 mg/kg'},
+    {area:'약물',q:'탈분극성 근이완제는?',opts:['Vecuronium','Rocuronium','Succinylcholine','Atracurium'],ans:2,exp:'Succinylcholine: 유일한 탈분극성 NMB. RSI 1~1.5 mg/kg'},
+    {area:'약물',q:'Midazolam 역전제는?',opts:['Naloxone','Flumazenil','Neostigmine','Sugammadex'],ans:1,exp:'Flumazenil: BZD 길항제'},
+    {area:'약물',q:'서맥 1차 처치 약물은?',opts:['Ephedrine','Atropine','Propranolol','Lidocaine'],ans:1,exp:'Atropine 0.5~1 mg IV'},
+    {area:'ASA',q:'ASA II 환자는?',opts:['건강한 환자','경미한 전신질환','생명위협 전신질환','뇌사 상태'],ans:1,exp:'ASA II: 조절된 고혈압·당뇨 등 경미한 전신질환'},
+    {area:'모니터링',q:'저체온 기준은?',opts:['35°C 미만','36°C 미만','37°C 미만','38°C 미만'],ans:0,exp:'저체온 기준: 35°C 미만'},
+    {area:'기도관리',q:'LMA #4 적합 체중은?',opts:['10~30 kg','30~50 kg','50~70 kg','70~100 kg'],ans:2,exp:'#3(30~50), #4(50~70), #5(>70 kg)'},
+    {area:'마취 단계',q:'마취 3단계 순서는?',opts:['유지-유도-각성','유도-각성-유지','유도-유지-각성','각성-유도-유지'],ans:2,exp:'유도 → 유지 → 각성'},
+    {area:'약물',q:'Fentanyl의 주요 부작용은?',opts:['고혈압','빈맥','호흡억제','근육경련'],ans:2,exp:'오피오이드 주요 부작용: 호흡억제'},
+    {area:'모니터링',q:'즉각 처치 필요 SpO₂는?',opts:['96%','95%','94%','90%'],ans:2,exp:'SpO₂ <94% 즉각 처치'},
+    {area:'준비',q:'마취기계 점검 항목이 아닌 것은?',opts:['산소 공급','흡인기 작동','회로 누출','수술 기구 멸균'],ans:3,exp:'수술 기구 멸균은 수술팀 영역'},
+    {area:'기도관리',q:'여성 삽관 깊이(입술 기준)는?',opts:['15~17 cm','17~19 cm','19~21 cm','21~23 cm'],ans:2,exp:'여성 19~21 cm, 남성 21~23 cm'},
+    {area:'약물',q:'PONV 예방 약물은?',opts:['Ketamine','Ondansetron','Atropine','Ephedrine'],ans:1,exp:'Ondansetron 4 mg IV'},
+    {area:'응급',q:'식도삽관 의심 시 가장 먼저 할 행동은?',opts:['X-ray 촬영','즉시 발관 후 재삽관','SpO₂ 관찰','의사 지시 대기'],ans:1,exp:'즉시 발관 → BVM 산소화 → 재삽관'},
+  ],
+  mid:[
+    {area:'TIVA',q:'마취 중 BIS 목표 수치는?',opts:['20~40','40~60','60~80','80~100'],ans:1,exp:'마취 중 40~60. <40 과마취, >80 각성 위험'},
+    {area:'TIVA',q:'Propofol TCI 유지 Ce 목표는?',opts:['1~2 mcg/mL','2~4 mcg/mL','4~6 mcg/mL','6~8 mcg/mL'],ans:1,exp:'Ce 2~4 mcg/mL. 유도 Ce 4~6'},
+    {area:'혈관작용제',q:'순수 α1 작용제는?',opts:['Ephedrine','Dopamine','Phenylephrine','Norepinephrine'],ans:2,exp:'Phenylephrine: 순수 α1 → 반사성 서맥'},
+    {area:'혈관작용제',q:'저혈압+서맥 선호 약물은?',opts:['Phenylephrine','Ephedrine','Nitroglycerin','Norepinephrine'],ans:1,exp:'Ephedrine: α+β 간접 작용 → 혈압↑+HR↑'},
+    {area:'수혈',q:'남성 70 kg의 EBV는?',opts:['4,200 mL','4,550 mL','5,250 mL','6,000 mL'],ans:2,exp:'70 × 75 = 5,250 mL'},
+    {area:'수혈',q:'Transamine 작용기전은?',opts:['응고인자 활성화','섬유소분해 억제','혈소판 응집 촉진','혈관 수축'],ans:1,exp:'plasminogen 활성화 억제 → 출혈 감소'},
+    {area:'신경근차단',q:'TOF ratio >0.9의 의미는?',opts:['충분한 차단','불충분한 역전','충분한 회복','추가 근이완 필요'],ans:2,exp:'신경근 기능 충분히 회복. 발관 가능 기준'},
+    {area:'신경근차단',q:'Sugammadex 작용기전은?',opts:['AChE 억제','γ-사이클로덱스트린 봉입','무스카린 길항','NMDA 길항'],ans:1,exp:'γ-사이클로덱스트린이 Roc/Vec 포획'},
+    {area:'Robot',q:'Robot Prostatectomy 주의 체위는?',opts:['앙와위','쇄석위','급격한 Trendelenburg','측와위'],ans:2,exp:'Trendelenburg + CO₂ → ICP↑, 안압↑'},
+    {area:'Robot',q:'복강경 CO₂ 주입 시 주의 사항은?',opts:['혈압 상승','미주신경 자극→서맥','기관지경련','저혈당'],ans:1,exp:'복막 자극 → 미주신경 반사 → 서맥'},
+    {area:'TIVA',q:'Remifentanil의 특징은?',opts:['간에서 대사','반감기 30분↑','혈장 에스테라제 대사·초단시간','신장 배설'],ans:2,exp:'에스테라제 분해 → 반감기 3~5분'},
+    {area:'혈관작용제',q:'패혈성 쇼크 1차 혈관수축제는?',opts:['Ephedrine','Phenylephrine','Norepinephrine','Dopamine'],ans:2,exp:'Norepinephrine: α1>β1 → 강력한 혈관수축'},
+    {area:'수액',q:'일반 성인 수혈 기준 Hb는?',opts:['5 g/dL','7 g/dL','9 g/dL','10 g/dL'],ans:1,exp:'일반: Hb <7. 심혈관 고위험: <8~10 g/dL'},
+    {area:'신경근차단',q:'Neostigmine 병용 약물은?',opts:['Ephedrine','Atropine','Fentanyl','Midazolam'],ans:1,exp:'무스카린 자극 → 서맥 → Atropine 필수'},
+    {area:'TIVA',q:'PONV 예방 표준 조합은?',opts:['Fentanyl+Morphine','Ondansetron+Dexamethasone','Ketamine+Propofol','Midazolam+Lorazepam'],ans:1,exp:'Ondansetron 4 mg + Dexamethasone 5 mg'},
+    {area:'Robot',q:'Robot GY 특이 합병증은?',opts:['저산소혈증','안압 상승','저혈압','저체온'],ans:1,exp:'Steep Trendelenburg 장시간 → IOP↑'},
+    {area:'수혈',q:'Hct 40% 70 kg 남성 목표 Hct 30% MABL은?',opts:['약 875 mL','약 1,050 mL','약 1,312 mL','약 1,575 mL'],ans:2,exp:'5250 × (40-30)/40 = 1312.5 mL'},
+    {area:'TIVA',q:'TCI 두 가지 목표 농도는?',opts:['Cp와 Ce','MAC과 BIS','Ce와 TOF','Cp와 SpO₂'],ans:0,exp:'혈중농도(Cp) 또는 효과처농도(Ce)'},
+    {area:'부위마취',q:'Total Spinal 처치는?',opts:['수액 제한','즉각 기도 확보·기관삽관','진통제 투여','수술 취소'],ans:1,exp:'호흡근 마비 → 즉각 기관삽관'},
+    {area:'계산',q:'Phenylephrine 100 mcg/mL, 65 kg, 1 mcg/kg/min 주입속도는?',opts:['29.3 mL/h','34.5 mL/h','39.0 mL/h','45.0 mL/h'],ans:2,exp:'1×65×60/100 = 39.0 mL/h'},
+  ],
+  adv:[
+    {area:'응급',q:'아나필락시스 1차 약물·경로는?',opts:['Hydrocortisone IV','Epinephrine 0.3~0.5 mg IM','Diphenhydramine IV','Salbutamol 흡입'],ans:1,exp:'Epinephrine 0.3~0.5 mg IM (대퇴부 외측)'},
+    {area:'응급',q:'MH 1차 처치 약물은?',opts:['Dantrolene','Propofol','Succinylcholine','Ketamine'],ans:0,exp:'트리거 중단 + Dantrolene 2.5 mg/kg IV'},
+    {area:'응급',q:'LAST 처치 약물은?',opts:['Naloxone','20% Intralipid','Sugammadex','Flumazenil'],ans:1,exp:'20% Intralipid 1.5 mL/kg IV bolus'},
+    {area:'심혈관',q:'CVP 정상 범위는?',opts:['1~3 mmHg','2~8 mmHg','8~15 mmHg','15~25 mmHg'],ans:1,exp:'CVP 정상: 2~8 mmHg'},
+    {area:'심혈관',q:'Dobutamine 작용기전은?',opts:['α1 작용','β1>β2 작용제','무스카린 길항','PDE-3 억제'],ans:1,exp:'β1>β2 → 심근수축력↑'},
+    {area:'기도',q:'CICO 처치는?',opts:['Awake 재시도','비강 고유량 O₂','즉각 외과적 기도','Sugammadex 후 재삽관'],ans:2,exp:'즉각 Cricothyrotomy — 주저 금지'},
+    {area:'기도',q:'Mallampati class IV 특징은?',opts:['연구개+목젖+구개수','연구개+목젖','연구개만','아무것도 안보임'],ans:3,exp:'아무것도 안보임 → 어려운 삽관 사전 계획'},
+    {area:'부위마취',q:'척추마취 표준 약물은?',opts:['Ropivacaine 0.75% isobaric','Bupivacaine 0.5% Heavy','Lidocaine 2% Plain','Prilocaine 4%'],ans:1,exp:'0.5% Hyperbaric Bupivacaine 10~15 mg'},
+    {area:'특수환자',q:'소아 무커프 ETT 계산식은?',opts:['나이/4+3','나이/4+4','나이/3+4','체중/10+2'],ans:1,exp:'(나이/4)+4 mm. 예) 8세: 6.0 mm'},
+    {area:'특수환자',q:'임산부 RSI 주요 이유는?',opts:['태아 약물 노출','위 배출 지연→흡인','혈압 불안정','약물 용량 조절'],ans:1,exp:'위 배출 지연 + 하부식도괄약근 이완 → 흡인 위험'},
+    {area:'통증',q:'OFA에 포함 안 되는 약물은?',opts:['Ketamine','Dexmedetomidine','Remifentanil','Lidocaine IV'],ans:2,exp:'OFA = Opioid-Free. Remifentanil은 오피오이드'},
+    {area:'심혈관',q:'CI 계산식은?',opts:['CO×체중','CO/BSA','CO×심박수','CO/혈압'],ans:1,exp:'CI = CO / BSA. 정상 2.5~4.0 L/min/m²'},
+    {area:'응급',q:'후두경련 처치 순서는?',opts:['진정제→기도','양압O₂→Succinylcholine→재삽관','항히스타민→관찰','발관→BVM'],ans:1,exp:'양압 O₂ → Propofol 0.5 mg/kg → Succinylcholine'},
+    {area:'부위마취',q:'PDPH 예방 방법은?',opts:['18G Tuohy','25G↑ Pencil-point','최대 용량','빠른 삽입'],ans:1,exp:'25G 이상 Pencil-point 바늘'},
+    {area:'심혈관',q:'Milrinone 작용기전은?',opts:['β1 작용','α1 억제','PDE-3 억제→cAMP↑→심수축↑+혈관확장','ACE 억제'],ans:2,exp:'PDE-3 억제 → cAMP↑ → Ca²⁺↑ → 심수축력↑'},
+    {area:'응급',q:'MH 가장 초기 징후는?',opts:['혈압 상승','EtCO₂ 급상승','체온 급상승','SpO₂ 감소'],ans:1,exp:'대사항진 → CO₂ 생성↑ → EtCO₂ 급상승 (가장 이른 징후)'},
+    {area:'기도',q:'Video Laryngoscope 장점이 아닌 것은?',opts:['성문 시야 개선','숙련도 없이 동일 성공률','경추 고정 환자 유용','교육 효과'],ans:1,exp:'숙련도에 따라 성공률 차이 있음'},
+    {area:'특수환자',q:'고도비만 RSI 이유는?',opts:['약물 용량 감소','기도 어려움+역류','심혈관 합병증','저혈당'],ans:1,exp:'Mallampati↑ + 복압↑ → 역류·흡인 위험'},
+    {area:'통증',q:'PCA 설정 항목이 아닌 것은?',opts:['단회 용량','잠금 시간','시간당 최대 용량','투여 경로'],ans:3,exp:'PCA: 단회 용량, 잠금 시간, 기저 주입, 최대 용량'},
+    {area:'심혈관',q:'Swan-Ganz로 직접 측정 불가한 것은?',opts:['PAP','PCWP','CO (열희석법)','SVR'],ans:3,exp:'SVR = 계산값 (CO·혈압으로 산출)'},
+  ]
+};
+
+const DRUGS=[
+  {cat:'iv',name:'Propofol',brand:'Fresofol / Pofol',dose:'유도: 1~2 mg/kg\nTIVA: 100~200 mcg/kg/min (20 mg/mL)',moa:'GABA-A 양성 조절',side:'저혈압, 무호흡, 주사통증',note:'지질제형. 세균 오염 주의. 소아 TCI: Paedfusor model'},
+  {cat:'iv',name:'Midazolam',brand:'도미쿰',dose:'전투약: 0.02~0.05 mg/kg / 최대 5 mg\n소아 진정: 0.1 mg/kg',moa:'BZD → GABA-A 친화성↑',side:'호흡억제, 기억상실',note:'Flumazenil 역전'},
+  {cat:'iv',name:'Ketamine',brand:'케타민',dose:'유도: 1~2 mg/kg IV\nOFA 진통: 0.1~0.3 mg/kg',moa:'NMDA 수용체 길항',side:'혈압↑, 분비물↑, 환각',note:'기도 반사 보존. 기관지확장. OFA 조합'},
+  {cat:'iv',name:'Remimazolam',brand:'아네레',dose:'유도: 6 mg/kg/hr → 의식 소실까지\n유지: 1 mg/kg/hr (최대 2)\n진정 유도: 5 mg IV',moa:'BZD → GABA-A',side:'저혈압, 서맥',note:'1 mg/mL (50 mg + NS 50 mL). Flumazenil 역전 가능'},
+  {cat:'iv',name:'Etomidate',brand:'에토미데이트',dose:'유도: 0.2~0.3 mg/kg',moa:'GABA-A 작용',side:'부신억제, 근경련',note:'심혈관계 안정적. RSI 대안'},
+  {cat:'opioid',name:'Fentanyl',brand:'펜타닐',dose:'유도: 1~2 mcg/kg\nSufentanil 비 1:5~10',moa:'μ-오피오이드 수용체',side:'호흡억제, 흉벽강직',note:'Naloxone 역전. 소아 1 mcg/kg 기준'},
+  {cat:'opioid',name:'Remifentanil',brand:'울티바',dose:'TCI Ce: 2~4 ng/mL\nCIV: 0.1~1 mcg/kg/min (20 mcg/mL)',moa:'μ-오피오이드, 에스테라제 대사',side:'서맥, 저혈압',note:'반감기 3~5분. 소아 15세 미만 Dose rate'},
+  {cat:'opioid',name:'Sufentanil',brand:'수펜타닐',dose:'CIV: 0.5~1.5 mcg/kg/hr (5 mcg/mL)\nBolus: 0.1~0.2 mcg/kg',moa:'μ-오피오이드, Fentanyl×5~10',side:'호흡억제, 서맥',note:'TIVA 유지에 사용. 소아 체중 기반'},
+  {cat:'opioid',name:'Morphine',brand:'모르핀',dose:'0.05~0.1 mg/kg IV slow\nPCA basal 1 mg, bolus 1 mg',moa:'μ-오피오이드 수용체',side:'히스타민 유리, 오심, 가려움',note:'PCA: Fentanyl 1000 mcg + Zofran 4 mg + NS (총 60 mL)'},
+  {cat:'nmb',name:'Succinylcholine',brand:'석시닐',dose:'RSI: 1~1.5 mg/kg\n소아: 2 mg/kg',moa:'탈분극성 NMB',side:'서맥, K+↑, MH 촉발',note:'MH 소인·고K혈증 금기. 유일한 탈분극성'},
+  {cat:'nmb',name:'Rocuronium',brand:'에스메론',dose:'유도: 0.6 mg/kg (90초)\nRSI: 1.2 mg/kg\nCIV: 9~12 mcg/kg/min (2 mg/mL)',moa:'비탈분극성 NMB',side:'알레르기',note:'Sugammadex 즉각 역전 가능'},
+  {cat:'nmb',name:'Vecuronium',brand:'노르쿠론',dose:'유도: 0.1~0.12 mg/kg (3분)\nCIV: 1~2 mcg/kg/min (1 mg/mL)',moa:'비탈분극성 NMB',side:'히스타민 유리 적음',note:'간/신장 기능 저하 시 지속 연장'},
+  {cat:'nmb',name:'Atracurium',brand:'아트라쿠리움',dose:'유도: 0.5 mg/kg (3분)\nCIV: 4~12 mcg/kg/min (10 mg/mL)',moa:'비탈분극성, Hofmann 분해',side:'히스타민 유리',note:'간/신 독립 대사. 신부전·간부전 유리'},
+  {cat:'nmb',name:'Cisatracurium',brand:'니임박스',dose:'유도: 0.15~0.2 mg/kg\nCIV: 1~2 mcg/kg/min (2 mg/mL)',moa:'비탈분극성, Hofmann 분해',side:'히스타민 유리 최소',note:'ICU 장기 사용에 유리'},
+  {cat:'vaso',name:'Norepinephrine',brand:'노르에피네프린',dose:'CIV: 0.01~0.2 mcg/kg/min\nSNUH 희석: 1@ + D5W 196cc (20 mcg/mL)',moa:'α1>β1',side:'말초 허혈, 조직 괴사',note:'중심정맥 필수. 패혈성 쇼크 1차'},
+  {cat:'vaso',name:'Epinephrine',brand:'에피네프린',dose:'아나필락시스: 0.3 mg IM\nCIV: 0.01~0.2 mcg/kg/min (20 mcg/mL)',moa:'α+β 용량 의존',side:'빈맥, 고혈압, 부정맥',note:'아나필락시스 1차. 심정지 1 mg IV q3~5min'},
+  {cat:'vaso',name:'Phenylephrine',brand:'페닐에프린',dose:'Bolus: 50~100 mcg\nCIV: 0.25~1 mcg/kg/min (100 mcg/mL)\nSNUH: 1v + NS 99cc',moa:'순수 α1',side:'반사성 서맥',note:'HR 정상 저혈압. 척추마취 후 저혈압'},
+  {cat:'vaso',name:'Dopamine',brand:'도파민',dose:'CIV: 2~20 mcg/kg/min\nSNUH: 1@ + D5W 195cc (1 mg/mL)',moa:'용량 의존 DA·β·α',side:'빈맥, 부정맥',note:'NE가 우선. 고용량 중심정맥 권장'},
+  {cat:'vaso',name:'Dobutamine',brand:'도부타민',dose:'CIV: 2~20 mcg/kg/min\nSNUH: 0.8@ + D5W 196cc (1 mg/mL)',moa:'β1>β2',side:'빈맥, 부정맥',note:'심수축력↓ 심부전. Lung TPL 기본 약물'},
+  {cat:'vaso',name:'Milrinone',brand:'밀리논',dose:'Loading: 50 mcg/kg (10분)\nCIV: 0.375~0.75 mcg/kg/min (0.2 mg/mL)',moa:'PDE-3 억제 → cAMP↑',side:'저혈압, 부정맥',note:'Lung TPL: 체중/2 mL loading. 폐고혈압·우심실 부전'},
+  {cat:'vaso',name:'Dexmedetomidine',brand:'프레세덱스',dose:'Loading: 1 mcg/kg (10분)\nCIV: 0.2~0.7 mcg/kg/hr (4 mcg/mL)\n70세↑: 0.5 mcg/kg loading',moa:'α2 중추성 진정·진통',side:'서맥, 저혈압',note:'OS 프로토콜: 시린지 펌프 원액 사용. 수술 종료 1h 전 감량'},
+  {cat:'vaso',name:'Vasopressin',brand:'바소프레신',dose:'고정: 0.01~0.04 unit/min\nSNUH: 1cc + NS 99cc (0.2 unit/mL)',moa:'V1 수용체 혈관수축',side:'말초·장간막 허혈',note:'NE 불응성 패혈성 쇼크 보조. 심폐우회술 후 vasoplegia'},
+  {cat:'vaso',name:'Nitroglycerin',brand:'니트로글리세린',dose:'CIV: 0.5~10 mcg/kg/min\nSNUH: 1v + D5W 200cc (0.2 mg/mL)',moa:'NO 공여 → 혈관확장',side:'두통, 저혈압',note:'비PVC 세트 사용. Heart 방 기본 약물'},
+  {cat:'reversal',name:'Sugammadex',brand:'브리디온',dose:'일반: 2 mg/kg\n심부차단: 4 mg/kg\n즉각: 16 mg/kg',moa:'γ-사이클로덱스트린 봉입',side:'알레르기',note:'소아 2세 이상. 2세 미만 서맥·laryngospasm 주의'},
+  {cat:'reversal',name:'Neostigmine',brand:'프로스티그민',dose:'0.03~0.07 mg/kg + Atropine 필수',moa:'AChE 억제',side:'서맥, 분비물↑',note:'TOF count ≥2에서만 사용'},
+  {cat:'reversal',name:'Flumazenil',brand:'아넥세이트',dose:'0.2 mg IV → 1분 간격 0.1 mg (최대 1 mg)',moa:'BZD 길항',side:'재진정, 경련',note:'Midazolam·Remimazolam 역전'},
+  {cat:'reversal',name:'Naloxone',brand:'날록손',dose:'0.04~0.4 mg IV (2~3분 간격 반복)',moa:'오피오이드 수용체 길항',side:'급성 통증, 폐부종',note:'반감기 < 오피오이드 → 재투여 필요'},
+  {cat:'emgd',name:'Dantrolene',brand:'단트리움',dose:'MH: 2.5 mg/kg IV 반복 (최대 10)',moa:'근형질세망 Ca²⁺ 유리 억제',side:'근력저하, 간독성(만성)',note:'MH 의심 즉각 투여. 지연 시 치명적'},
+  {cat:'emgd',name:'Intralipid 20%',brand:'인트라리피드',dose:'1.5 mL/kg IV bolus → 0.25 mL/kg/min 지속',moa:'지질 구획 효과',side:'과지질혈증',note:'LAST 1차 처치. 최대 12 mL/kg'},
+  {cat:'emgd',name:'Tranexamic acid',brand:'트란사민',dose:'일반: 10 mg/kg loading 20분 → 1 mg/kg/hr\n심장방: 4v + NS 20cc (50 mg/mL) 5 mg/kg/h',moa:'항섬유소분해 (plasminogen 억제)',side:'오심, 혈전',note:'90 mL NS + 500 mg ×2 = 10 mg/mL (일반 프로토콜)'},
+];
+
+const EMG=[
+  {cat:'drug',name:'아나필락시스',signs:'두드러기·혈압급하강·기관지경련·후두부종',steps:['트리거(약물·라텍스) 즉시 중단','Epinephrine 0.3 mg IM (대퇴부 외측) 즉시','100% O₂ · 기도 확보','대량 수액 (NS 1~2 L 빠르게)','Hydrocortisone 200 mg IV + 항히스타민제'],drugs:'Epinephrine 0.3~0.5 mg IM\nHydrocortisone 200 mg IV\nDiphenhydramine 25~50 mg IV\nNS 1~2 L bolus',color:'#DC2626'},
+  {cat:'drug',name:'악성 고체온 (MH)',signs:'EtCO₂ 급상승 · 체온>39°C · 근육경직 · 빈맥',steps:['흡입마취제·Succinylcholine 즉시 중단','순수 O₂ 10 L/min 고유량','Dantrolene 2.5 mg/kg IV 반복 (최대 10)','적극적 냉각 (냉식염수·아이스팩)','NaHCO₃ 산증 교정 · 소변 유지'],drugs:'Dantrolene 2.5 mg/kg IV 반복\nNaHCO₃ 1~2 mEq/kg\n냉식염수 15 mL/kg IV',color:'#DC2626'},
+  {cat:'drug',name:'LAST (국소마취제 독성)',signs:'금속 맛 · 이명 · 경련 · 부정맥',steps:['국소마취제 즉시 중단','100% O₂ · 기도 확보','Benzodiazepine으로 경련 조절','20% Intralipid 1.5 mL/kg IV bolus','ACLS 프로토콜 준비'],drugs:'Intralipid 20% 1.5 mL/kg bolus\n→ 0.25 mL/kg/min 지속 (최대 12 mL/kg)\nMidazolam 2~5 mg IV (경련)',color:'#D97706'},
+  {cat:'airway',name:'후두경련',signs:'흡기 stridor · SpO₂ 감소 · 호흡 노력↑',steps:['자극 제거','양압 O₂ (100%, 단단히 밀착)','Propofol 0.5 mg/kg IV','Succinylcholine 0.1~1.5 mg/kg','기관삽관 및 SpO₂ 회복 확인'],drugs:'Propofol 0.5 mg/kg IV\nSuccinylcholine 0.1~1.5 mg/kg\nAtropine 0.5 mg (서맥 시)',color:'#5B21B6'},
+  {cat:'airway',name:'CICO',signs:'반복 삽관 실패 · 양압 환기 불가 · SpO₂ <88%',steps:['즉각 도움 요청','2인 마스크 환기 시도','LMA/SGA 삽입','비강 고유량 O₂ 동시 적용','즉각 외과적 기도 (Cricothyrotomy) — 주저 금지'],drugs:'Succinylcholine 1.5 mg/kg (최이완)\nEpinephrine (순환 지지)',color:'#DC2626'},
+  {cat:'airway',name:'기관지경련',signs:'호기 wheezing · EtCO₂ 어깨형 파형 · 기도압↑',steps:['트리거 제거 · 마취심도 증가','100% O₂','흡입 β₂ 작용제 투여','Ketamine 0.5~1 mg/kg IV','Epinephrine·MgSO₄ (불응성)'],drugs:'Salbutamol 흡입 2~4 puff\nKetamine 0.5~1 mg/kg IV\nEpinephrine 0.1~0.3 mg IV (중증)',color:'#1E40AF'},
+  {cat:'cv',name:'심정지',signs:'EKG 무수축/VF · 맥박 소실 · 혈압 없음',steps:['CPR 즉각 시작 (100~120/min)','제세동기 준비 (VF/pVT 시)','Epinephrine 1 mg IV q3~5min','원인 4H4T 감별','ACLS 프로토콜 준수'],drugs:'Epinephrine 1 mg IV q3~5min\nAmiodarone 300 mg IV (VF)\nNaHCO₃ (산증)',color:'#DC2626'},
+];
+
+// Drug info for CIV calculator
+const CIV_INFO={
+  NE_20:{unit:'mcg/kg/min',range:'0.01~0.2 mcg/kg/min',conc:20,type:'mcg_kg_min',note:'중심정맥 필수. 패혈성 쇼크 1차'},
+  Epi_20:{unit:'mcg/kg/min',range:'0.01~0.2 mcg/kg/min',conc:20,type:'mcg_kg_min',note:'아나필락시스·심정지 보조'},
+  Phe_100:{unit:'mcg/kg/min',range:'0.25~1 mcg/kg/min',conc:100,type:'mcg_kg_min',note:'반사성 서맥 주의'},
+  Dob_1:{unit:'mcg/kg/min',range:'2~20 mcg/kg/min',conc:1000,type:'mcg_kg_min',note:'심부전·심인성 쇼크'},
+  Dob_2:{unit:'mcg/kg/min',range:'2~20 mcg/kg/min',conc:2000,type:'mcg_kg_min',note:'Premix 2 mg/mL'},
+  NG_02:{unit:'mcg/kg/min',range:'0.5~10 mcg/kg/min',conc:200,type:'mcg_kg_min',note:'비PVC 세트 사용'},
+  SNP_02:{unit:'mcg/kg/min',range:'0.5~10 mcg/kg/min',conc:200,type:'mcg_kg_min',note:'차광 필수'},
+  Dop_1:{unit:'mcg/kg/min',range:'2~20 mcg/kg/min',conc:1000,type:'mcg_kg_min',note:'저용량 신장 보호 효과 불명확'},
+  Dop_2:{unit:'mcg/kg/min',range:'2~20 mcg/kg/min',conc:2000,type:'mcg_kg_min',note:'Premix 2 mg/mL'},
+  Mil_02:{unit:'mcg/kg/min',range:'0.375~0.75 mcg/kg/min',conc:200,type:'mcg_kg_min',note:'로딩 50 mcg/kg 10분 (저혈압 주의)'},
+  Esm_10:{unit:'mcg/kg/min',range:'50~200 mcg/kg/min',conc:10000,type:'mcg_kg_min',note:'부하 0.5 mg/kg 1분간'},
+  Iso_4:{unit:'mcg/min',range:'0.5~10 mcg/min',conc:4,type:'mcg_min',note:'서맥·AV block'},
+  Vaso_02:{unit:'unit/kg/hr',range:'0.01~0.04 unit/kg/hr',conc:0.2,type:'unit_kg_hr',note:'패혈성 쇼크 보조'},
+  PPF_20:{unit:'mcg/kg/min',range:'100~200 mcg/kg/min',conc:20000,type:'mcg_kg_min',note:'TIVA 유지. Paedfusor 소아'},
+  Remi_20:{unit:'mcg/kg/min',range:'0.1~1 mcg/kg/min',conc:20,type:'mcg_kg_min',note:'소아 15세 미만 Dose rate'},
+  SuF_5:{unit:'mcg/kg/hr',range:'0.5~1.5 mcg/kg/hr',conc:5,type:'mcg_kg_hr',note:'소아 30kg 미만 1 mcg/mL 제형'},
+};
+
+// PAGE NAVIGATION
+function P(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  const ids=['home','cur','basic','mid','adv','quiz','calc','drugs','emg','deploy'];
+  const i=ids.indexOf(id);
+  if(i>=0) document.querySelectorAll('.nav-tab')[i].classList.add('on');
+  window.scrollTo(0,0);
+  if(id==='cur') renderCur();
+  if(id==='basic') renderCards('basic');
+  if(id==='mid') renderCards('mid');
+  if(id==='adv') renderCards('adv');
+  if(id==='drugs') renderDrugs('all');
+  if(id==='emg') renderEmg('all');
+  if(id==='calc'){calcCIV();calcMABL();calcSug();calcDil();}
+}
+
+// CURRICULUM
+function renderCur(){
+  const lm={basic:'b-g',mid:'b-a',adv:'b-r'};
+  const lt={basic:'초급',mid:'중급',adv:'고급'};
+  document.getElementById('cur-list').innerHTML=CUR.map(c=>`
+    <div class="card" style="margin-bottom:.5rem">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+            <span class="badge ${lm[c.lv]}">${lt[c.lv]}</span>
+            <span class="ct">${c.n}</span>
+          </div>
+          <div class="cd">${c.sub}</div>
+        </div>
+        <span style="font-size:11px;color:var(--gray-m);white-space:nowrap">권장 ${c.period}</span>
+      </div>
+    </div>`).join('');
+}
+
+// CHAPTER CARDS
+function renderCards(lv){
+  const items=CUR.filter(c=>c.lv===lv);
+  document.getElementById('cards-'+lv).innerHTML=items.map(c=>`
+    <div class="card ec" onclick="tc(this)">
+      <div class="ch">
+        <div>
+          <div class="ct">${c.n}</div>
+          <div class="cd">${c.sub} · 권장 ${c.period}</div>
+        </div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="cb">
+        ${c.info?`<div class="ibox">💡 ${c.info}</div>`:''}
+        ${c.warn?`<div class="wbox">⚠ ${c.warn}</div>`:''}
+        ${c.danger?`<div class="dbox">🚨 ${c.danger}</div>`:''}
+        ${c.items?`<ul class="ul">${c.items.map(it=>{const p=it.indexOf(':');return`<li>${p>-1?`<strong>${it.slice(0,p)}:</strong>${it.slice(p+1)}`:it}</li>`}).join('')}</ul>`:''}
+        ${c.table?`<div style="overflow-x:auto"><table class="tbl"><tr>${c.table.h.map(h=>`<th>${h}</th>`).join('')}</tr>${c.table.rows.map(r=>`<tr>${r.map(d=>`<td>${d}</td>`).join('')}</tr>`).join('')}</table></div>`:''}
+      </div>
+    </div>`).join('');
+}
+function tc(el){const cb=el.querySelector('.cb'),ch=el.querySelector('.chev');cb.classList.toggle('open');ch.classList.toggle('open');}
+
+// QUIZ
+let QS={lv:'',qs:[],idx:0,sc:0,done:false,hist:{}};
+function startQuiz(lv){
+  QS={lv,qs:[...QUIZ[lv]].sort(()=>Math.random()-.5).slice(0,20),idx:0,sc:0,done:false,hist:QS.hist};
+  document.getElementById('quiz-sel').style.display='none';
+  document.getElementById('quiz-area').style.display='block';
+  document.getElementById('quiz-result').style.display='none';
+  P('quiz');renderQ();
+}
+function renderQ(){
+  const q=QS.qs[QS.idx],tot=QS.qs.length;
+  document.getElementById('q-pos').textContent=`${QS.idx+1} / ${tot}`;
+  document.getElementById('q-live').textContent=QS.idx?Math.round((QS.sc/QS.idx)*100)+'점':'0점';
+  document.getElementById('q-bar').style.width=Math.max(Math.round((QS.idx/tot)*100),3)+'%';
+  document.getElementById('q-next').style.display='none';
+  QS.done=false;
+  document.getElementById('q-content').innerHTML=`
+    <div class="qcard">
+      <div class="qnum">${QS.idx+1}번 · ${q.area}</div>
+      <div class="qtxt">${q.q}</div>
+      <div class="qopts">${q.opts.map((o,i)=>`<button class="qopt" onclick="ansQ(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div>
+      <div class="qexp" id="qexp">${q.exp}</div>
+    </div>`;
+}
+function ansQ(i){
+  if(QS.done)return;QS.done=true;
+  const q=QS.qs[QS.idx],ok=q.ans===i;
+  if(ok)QS.sc++;
+  document.querySelectorAll('.qopt').forEach((o,idx)=>{o.disabled=true;if(idx===q.ans)o.classList.add('correct');else if(idx===i&&!ok)o.classList.add('wrong');});
+  document.getElementById('qexp').classList.add('show');
+  document.getElementById('q-live').textContent=Math.round((QS.sc/(QS.idx+1))*100)+'점';
+  const nb=document.getElementById('q-next');
+  nb.textContent=QS.idx===QS.qs.length-1?'결과 보기 →':'다음 문제 →';
+  nb.style.display='inline-block';
+}
+function nextQ(){QS.idx++;if(QS.idx>=QS.qs.length){showResult();return;}renderQ();}
+function showResult(){
+  const s=Math.round((QS.sc/QS.qs.length)*100),tgt={basic:80,mid:85,adv:90}[QS.lv],pass=s>=tgt;
+  QS.hist[QS.lv]=s;
+  document.getElementById('quiz-area').style.display='none';
+  document.getElementById('quiz-result').style.display='block';
+  document.getElementById('res-score').textContent=s;
+  document.getElementById('res-score').style.color=pass?'var(--green)':'var(--red)';
+  document.getElementById('res-lbl').textContent=`점 / 100점 ({기초:기초,mid:중간년차,adv:심화}[QS.lv]||QS.lv) 과정 · 목표 ${tgt}점`.replace('{기초:기초,mid:중간년차,adv:심화}[QS.lv]||QS.lv',''+{basic:'기초',mid:'중간년차',adv:'심화'}[QS.lv]);
+  document.getElementById('res-msg').textContent=pass?'🎉 합격! 다음 단계로 진행하세요.':'❌ 재응시 필요 — 오답 챕터를 복습하세요.';
+  document.getElementById('res-msg').style.color=pass?'var(--green)':'var(--red)';
+  document.getElementById('res-det').innerHTML=`<div class="ibox">정답 ${QS.sc} / ${QS.qs.length}문항</div>`;
+}
+function retryQuiz(){QS={...QS,qs:[...QUIZ[QS.lv]].sort(()=>Math.random()-.5).slice(0,20),idx:0,sc:0,done:false};document.getElementById('quiz-area').style.display='block';document.getElementById('quiz-result').style.display='none';renderQ();}
+function showQSel(){
+  document.getElementById('quiz-sel').style.display='block';
+  document.getElementById('quiz-area').style.display='none';
+  document.getElementById('quiz-result').style.display='none';
+  const lb={basic:'기초',mid:'중간년차',adv:'심화'};
+  const entries=Object.entries(QS.hist);
+  document.getElementById('prev-scores').innerHTML=entries.length?`<div class="ibox" style="margin-top:1rem"><strong>이번 세션 점수</strong><br>${entries.map(([k,v])=>`${lb[k]}: ${v}점`).join(' · ')}</div>`:'';
+}
+function endQuiz(){showQSel();}
+
+// CALCULATORS
+function showCalc(id,btn){
+  ['civ','ropiva','precedex','transamine','remimazolam','mabl','sug','pedi','dil'].forEach(c=>{
+    document.getElementById('calc-'+c).style.display=c===id?'block':'none';
+  });
+  document.querySelectorAll('#calc-pills .pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  if(id==='pedi')calcPedi();
+  if(id==='ropiva')calcRopiva();
+  if(id==='precedex')calcPrecedex();
+  if(id==='transamine')calcTransamine();
+  if(id==='remimazolam')calcRemimazolam();
+}
+
+function updateCIV(){
+  const key=document.getElementById('civ-drug').value;
+  const info=CIV_INFO[key];
+  document.getElementById('civ-unit-lbl').textContent='단위: '+info.unit;
+  document.getElementById('civ-dose').value=parseFloat(info.range.split('~')[0])||0.05;
+  document.getElementById('civ-range').textContent='범위: '+info.range;
+  calcCIV();
+}
+function calcCIV(){
+  const wt=parseFloat(document.getElementById('civ-wt').value)||0;
+  const dose=parseFloat(document.getElementById('civ-dose').value)||0;
+  const key=document.getElementById('civ-drug').value;
+  const info=CIV_INFO[key];
+  if(!info){return;}
+  document.getElementById('civ-range').textContent='범위: '+info.range;
+  let rate=0;
+  if(info.type==='mcg_kg_min') rate=(dose*wt*60)/info.conc;
+  else if(info.type==='mcg_min') rate=(dose*60)/info.conc;
+  else if(info.type==='unit_kg_hr') rate=(dose*wt)/info.conc;
+  else if(info.type==='mcg_kg_hr') rate=(dose*wt)/info.conc;
+  document.getElementById('civ-res').innerHTML=rate>0?`${rate.toFixed(1)} <span class="calc-unit">mL/h</span>`:'— <span class="calc-unit">mL/h</span>';
+  document.getElementById('civ-note').textContent=info.note||'';
+}
+
+function calcRopiva(){
+  const total=parseFloat(document.getElementById('ro-total').value)||0;
+  const sel=document.getElementById('ro-conc').value;
+  document.getElementById('ro-custom-row').style.display=sel==='custom'?'block':'none';
+  const conc=sel==='custom'?parseFloat(document.getElementById('ro-custom').value)||0:parseFloat(sel);
+  if(!total||!conc){return;}
+  const orig=total*conc/0.75;
+  const ns=total-orig;
+  document.getElementById('ro-orig').innerHTML=`${orig.toFixed(1)} <span class="calc-unit">mL</span>`;
+  document.getElementById('ro-ns').innerHTML=`${Math.max(0,ns).toFixed(1)} <span class="calc-unit">mL</span>`;
+}
+
+function calcPrecedex(){
+  const wt=parseFloat(document.getElementById('pdx-wt').value)||0;
+  const age=document.getElementById('pdx-age').value;
+  const factors={young:{load_mcg:1,load_rate:1.5,cont:0.15},mid:{load_mcg:0.67,load_rate:1,cont:0.1},old:{load_mcg:0.5,load_rate:0.75,cont:0.075}};
+  const f=factors[age];
+  const loadVol=wt*f.load_mcg/4;
+  const loadRate=wt*f.load_rate;
+  const contRate=wt*f.cont;
+  document.getElementById('pdx-load').innerHTML=`${loadVol.toFixed(1)} <span class="calc-unit">mL</span>`;
+  document.getElementById('pdx-load-rate').textContent=`주입속도: ${loadRate.toFixed(1)} mL/h (10분간)`;
+  document.getElementById('pdx-cont').innerHTML=`${contRate.toFixed(1)} <span class="calc-unit">mL/h</span>`;
+  document.getElementById('pdx-cont-rate').textContent=`${(f.cont*4).toFixed(2)} mcg/kg/hr`;
+}
+
+function calcTransamine(){
+  const wt=parseFloat(document.getElementById('trx-wt').value)||0;
+  const type=document.getElementById('trx-type').value;
+  if(type==='general'){
+    const conc=10;
+    const loadMg=wt*10;
+    const loadRate=(loadMg/conc)/(20/60);
+    const contRate=wt*1/conc;
+    document.getElementById('trx-load').innerHTML=`${loadRate.toFixed(0)} <span class="calc-unit">mL/h</span>`;
+    document.getElementById('trx-load-mg').textContent=`로딩 용량: ${loadMg.toFixed(0)} mg (10 mg/kg, 20분간)`;
+    document.getElementById('trx-cont').innerHTML=`${contRate.toFixed(1)} <span class="calc-unit">mL/h</span>`;
+  } else {
+    const conc=50;
+    const loadMg=wt*5.4;
+    const loadRate=loadMg/conc;
+    const contRate=wt*5/conc;
+    document.getElementById('trx-load').innerHTML=`${loadRate.toFixed(1)} <span class="calc-unit">mL</span>`;
+    document.getElementById('trx-load-mg').textContent=`로딩 용량: ${loadMg.toFixed(0)} mg (5.4 mg/kg) IV`;
+    document.getElementById('trx-cont').innerHTML=`${contRate.toFixed(1)} <span class="calc-unit">mL/h</span>`;
+  }
+}
+
+function calcRemimazolam(){
+  const wt=parseFloat(document.getElementById('rmz-wt').value)||0;
+  const type=document.getElementById('rmz-type').value;
+  let html='';
+  if(type==='induction'){
+    const induceRate=wt*6;
+    const maintRate=wt*1;
+    html=`<div style="line-height:2"><strong>유도 주입속도:</strong> ${induceRate.toFixed(0)} mL/h (6 mg/kg/hr, 의식 소실까지)<br>
+    <strong>유지 주입속도:</strong> ${maintRate.toFixed(0)} mL/h (1 mg/kg/hr)<br>
+    <strong>최대 유지:</strong> ${(wt*2).toFixed(0)} mL/h (2 mg/kg/hr)<br>
+    <small style="color:var(--gray-m)">농도: 1 mg/mL (50 mg + NS 50 mL)</small></div>`;
+  } else if(type==='maint'){
+    const rate=wt*1;
+    html=`<div style="line-height:2"><strong>유지 주입속도:</strong> ${rate.toFixed(0)} mL/h (1 mg/kg/hr)<br>
+    <strong>최대:</strong> ${(wt*2).toFixed(0)} mL/h (2 mg/kg/hr)</div>`;
+  } else {
+    html=`<div style="line-height:2"><strong>일반 유도:</strong> 5 mg IV (1분 이상)<br>
+    <strong>ASA III-IV 유도:</strong> 2.5~5 mg IV<br>
+    <strong>추가 투여 (≥2분 간격):</strong> 2.5 mg IV<br>
+    <strong>부하 주입 (0.05 mg/kg):</strong> ${(wt*0.05).toFixed(1)} mL → 이후 0.3 mg/kg/hr = ${(wt*0.3).toFixed(0)} mL/h</div>`;
+  }
+  document.getElementById('rmz-res').innerHTML=html;
+}
+
+function calcMABL(){
+  const wt=parseFloat(document.getElementById('mabl-wt').value)||0;
+  const f=parseFloat(document.getElementById('mabl-sex').value)||75;
+  const h0=parseFloat(document.getElementById('mabl-h0').value)||0;
+  const ht=parseFloat(document.getElementById('mabl-ht').value)||0;
+  const ebv=wt*f,mabl=h0>0?ebv*(h0-ht)/h0:0;
+  document.getElementById('mabl-ebv').innerHTML=`${Math.round(ebv).toLocaleString()} <span class="calc-unit">mL</span>`;
+  document.getElementById('mabl-res').innerHTML=`${Math.round(mabl).toLocaleString()} <span class="calc-unit">mL</span>`;
+}
+
+function calcSug(){
+  const wt=parseFloat(document.getElementById('sug-wt').value)||0;
+  const f=parseFloat(document.getElementById('sug-tof').value)||2;
+  const mg=wt*f;
+  document.getElementById('sug-mg').innerHTML=`${Math.round(mg)} <span class="calc-unit">mg</span>`;
+  document.getElementById('sug-ml').innerHTML=`${(mg/100).toFixed(1)} <span class="calc-unit">mL</span>`;
+}
+
+function calcPedi(){
+  const wt=parseFloat(document.getElementById('pedi-wt').value)||0;
+  const age=parseFloat(document.getElementById('pedi-age').value)||0;
+  const ett=(age/4+4).toFixed(1);
+  const depth=(age/2+12).toFixed(1);
+  document.getElementById('pedi-ett').innerHTML=`${ett} <span class="calc-unit">mm ID</span>`;
+  document.getElementById('pedi-depth').textContent=`삽관 깊이: ${depth} cm (입술 기준)`;
+  const drugs=[
+    ['Atropine','0.02 mg/kg','0.5 mg/mL',(wt*0.02/0.5).toFixed(2)+'cc','3세↓ 필수'],
+    ['TPT','5 mg/kg','25 mg/mL',(wt*5/25).toFixed(1)+'cc','36개월 미만'],
+    ['PPF (1%)','2 mg/kg','10 mg/mL',(wt*2/10).toFixed(1)+'cc','36개월↑. LDC+PPF'],
+    ['LDC','0.5 mg/kg','10 mg/mL',(wt*0.5/10).toFixed(2)+'cc','PPF 병용'],
+    ['ROC','0.6 mg/kg','10 mg/mL',(wt*0.6/10).toFixed(2)+'cc','Half=0.3 mg/kg'],
+    ['ROC 유지','0.2 mg/kg','10 mg/mL',(wt*0.2/10).toFixed(2)+'cc','40~60분마다'],
+    ['Sugammadex','2 mg/kg','100 mg/mL',(wt*2/100).toFixed(2)+'cc','2세↑. TOF 확인'],
+    ['Dexamethasone','0.15 mg/kg','5 mg/mL',(wt*0.15/5).toFixed(2)+'cc','안과·T&A'],
+    ['Ondansetron','0.1 mg/kg','2 mg/mL',(wt*0.1/2).toFixed(2)+'cc','T&A 종료 시'],
+    ['Profa (Paracetamol)','15 mg/kg','10 mg/mL',(wt*15/10).toFixed(1)+'cc','LFT 정상 시'],
+    ['CaCl2','5 mg/kg','30 mg/mL',(wt*5/30).toFixed(1)+'cc','간이식·대량수혈'],
+    ['Glycopyrrolate','0.01 mg/kg','0.2 mg/mL',(wt*0.01/0.2).toFixed(2)+'cc','Prone 전'],
+  ];
+  document.getElementById('pedi-table').innerHTML=`<div style="overflow-x:auto"><table class="tbl">
+    <tr><th>약물</th><th>용량</th><th>농도</th><th>주입량 (${wt}kg)</th><th>비고</th></tr>
+    ${drugs.map(d=>`<tr><td>${d[0]}</td><td>${d[1]}</td><td>${d[2]}</td><td style="color:var(--blue);font-weight:700">${d[3]}</td><td>${d[4]}</td></tr>`).join('')}
+  </table></div>`;
+}
+
+function calcDil(){
+  const c=parseFloat(document.getElementById('dil-c').value)||0;
+  const v=parseFloat(document.getElementById('dil-v').value)||0;
+  const t=parseFloat(document.getElementById('dil-t').value)||1;
+  document.getElementById('dil-res').innerHTML=`${(c*v/t).toFixed(3)} <span class="calc-unit">mg/mL</span>`;
+  document.getElementById('dil-tot').innerHTML=`${(c*v).toFixed(1)} <span class="calc-unit">mg</span>`;
+}
+
+// DRUGS
+function renderDrugs(cat){
+  const catN={iv:'정맥마취제',opioid:'오피오이드',nmb:'근이완제',vaso:'혈관·진정제',reversal:'역전제',emgd:'응급약물'};
+  const catC={iv:'var(--blue)',opioid:'var(--purple)',nmb:'var(--green)',vaso:'#D97706',reversal:'var(--amber)',emgd:'var(--red)'};
+  const filtered=cat==='all'?DRUGS:DRUGS.filter(d=>d.cat===cat);
+  document.getElementById('drug-list').innerHTML=filtered.map(d=>`
+    <div class="card ec" onclick="tc(this)">
+      <div class="ch">
+        <div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+            <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${catC[d.cat]}18;color:${catC[d.cat]};font-weight:700">${catN[d.cat]}</span>
+            <span class="ct">${d.name}</span>
+          </div>
+          <div class="cd">${d.brand}</div>
+        </div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="cb">
+        <div style="overflow-x:auto"><table class="tbl">
+          <tr><td style="width:65px">용량</td><td style="white-space:pre-line">${d.dose}</td></tr>
+          <tr><td>기전</td><td>${d.moa}</td></tr>
+          <tr><td>부작용</td><td>${d.side}</td></tr>
+          <tr><td>특이사항</td><td>${d.note}</td></tr>
+        </table></div>
+      </div>
+    </div>`).join('');
+}
+function filterDrug(cat,btn){
+  document.querySelectorAll('#drug-pills .pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');renderDrugs(cat);
+}
+
+// EMG
+function renderEmg(cat){
+  const filtered=cat==='all'?EMG:EMG.filter(e=>e.cat===cat);
+  document.getElementById('emg-list').innerHTML=filtered.map(e=>`
+    <div class="emg-card ec" onclick="tc(this)" style="border-left:4px solid ${e.color}">
+      <div class="ch">
+        <div>
+          <div class="ct" style="color:${e.color};font-size:14px">${e.name}</div>
+          <div class="cd">${e.signs}</div>
+        </div>
+        <span class="chev">▾</span>
+      </div>
+      <div class="cb">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-m);margin-bottom:6px">처치 순서</div>
+        <ul class="ul" style="margin-bottom:.75rem">${e.steps.map((s,i)=>`<li><strong>${i+1}.</strong> ${s}</li>`).join('')}</ul>
+        <div class="wbox" style="white-space:pre-line"><strong>투여 약물</strong>\n${e.drugs}</div>
+      </div>
+    </div>`).join('');
+}
+function filterEmg(cat,btn){
+  document.querySelectorAll('#emg-pills .pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');renderEmg(cat);
+}
+
+// INIT
+updateCIV();calcMABL();calcSug();calcDil();calcPedi();calcRopiva();calcPrecedex();calcTransamine();calcRemimazolam();
+</script>
+</body>
+</html>
