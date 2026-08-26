@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>심장 전도계 · 수축 · ECG 동기화 시뮬레이터</title>
+<style>
+  :root{
+    --bg:#070c14;
+    --panel:#0e1622;
+    --panel2:#131e2e;
+    --line:#1f2f45;
+    --txt:#e8eef8;
+    --dim:#8ba2c0;
+    --dim2:#5f7793;
+    --red:#e0555c;
+    --blue:#4a8fe0;
+    --amber:#fbbf24;
+    --mon:#25e07f;
+    --violet:#a78bfa;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:'Pretendard','Noto Sans KR','Malgun Gothic',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+  body{padding:14px 12px 40px;}
+  .wrap{max-width:960px;margin:0 auto;}
+
+  header{margin-bottom:14px}
+  h1{font-size:18px;margin:0 0 4px;letter-spacing:-.01em;font-weight:700}
+  .sub{font-size:12.5px;color:var(--dim);line-height:1.5;margin:0}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+
+  /* ── controls ─────────────────────────── */
+  .ctl-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .ctl-row + .ctl-row{margin-top:10px}
+  select{
+    flex:1 1 200px;min-width:0;appearance:none;
+    background:var(--panel2) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' stroke='%238ba2c0' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>") no-repeat right 12px center;
+    color:var(--txt);border:1px solid var(--line);border-radius:10px;
+    padding:10px 32px 10px 12px;font-size:14px;font-family:inherit;font-weight:600}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;padding:9px 13px;font-size:13px;font-family:inherit;font-weight:600;cursor:pointer}
+  .btn:active{transform:scale(.97)}
+  .btn.on{background:#1c3350;border-color:#2f5a8a;color:#bfe0ff}
+  .btn:focus-visible{outline:2px solid var(--mon);outline-offset:2px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:var(--panel2);border:0;color:var(--dim);padding:9px 11px;font-size:12.5px;
+    font-family:inherit;font-weight:600;cursor:pointer;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:#1c3350;color:#bfe0ff}
+  .slider-row{display:flex;align-items:center;gap:10px;width:100%}
+  .slider-row label{font-size:12px;color:var(--dim);white-space:nowrap;font-weight:600}
+  input[type=range]{flex:1;accent-color:var(--mon);height:22px;min-width:80px}
+  .hrval{font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;min-width:62px;text-align:right}
+  .hint{font-size:11.5px;color:var(--dim2);margin-top:8px;line-height:1.5}
+
+  /* ── heart ─────────────────────────── */
+  .heartbox{background:radial-gradient(ellipse at 50% 42%,#132133 0%,#0b1220 62%,#080d16 100%);
+    border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:12px;position:relative}
+  svg.heart{display:block;width:100%;height:auto;max-height:60vh;margin:0 auto}
+  .phase-tag{position:absolute;top:10px;left:12px;font-size:12px;font-weight:700;
+    background:rgba(8,14,24,.72);border:1px solid var(--line);border-radius:8px;padding:5px 9px;color:var(--mon);
+    backdrop-filter:blur(4px)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:var(--dim);
+    padding:8px 6px 4px;line-height:1.4}
+  .legend b{color:var(--amber);font-weight:700}
+  .legend i{color:#ffd7a8;font-style:normal;font-weight:700}
+
+  /* ── ecg ─────────────────────────── */
+  .ecgbox{background:#050a10;border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden;margin-bottom:12px}
+  canvas{display:block;width:100%;height:200px}
+
+  /* ── metrics ─────────────────────────── */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .m{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 8px;text-align:center}
+  .m .k{font-size:10.5px;color:var(--dim2);font-weight:600;letter-spacing:.02em}
+  .m .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;line-height:1.1}
+  .m .u{font-size:10px;color:var(--dim2);font-weight:600}
+  .m.hr .v{color:var(--mon)}
+  .m.co .v{color:#ffb457}
+  .bar{height:5px;background:#101a28;border-radius:3px;overflow:hidden;margin-top:6px}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,#ff8a4c,#ffd166);width:0%;
+    transition:width .12s linear}
+
+  /* ── info ─────────────────────────── */
+  .info h2{font-size:14.5px;margin:0 0 8px;color:var(--mon);font-weight:700}
+  .info dl{margin:0;font-size:12.8px;line-height:1.62}
+  .info dt{color:var(--amber);font-weight:700;margin-top:8px;font-size:11.5px;letter-spacing:.02em}
+  .info dt:first-child{margin-top:0}
+  .info dd{margin:2px 0 0;color:#cddcee}
+  footer{font-size:11px;color:var(--dim2);text-align:center;line-height:1.6;padding:6px 4px}
+
+  .phase-tag{max-width:64%}
+  .arr{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+  .arr:first-child{border-top:0;padding-top:4px;margin-top:6px}
+  .arr h4{font-size:13.8px;margin:0 0 8px;font-weight:700;color:#e8eef8}
+  .arr h4 span{display:block;font-size:10.8px;color:var(--dim2);font-weight:600;margin-top:1px}
+  .arrrow{display:flex;gap:9px;align-items:center}
+  .arrheart{width:94px;flex:none;background:#0a1220;border:1px solid var(--line);border-radius:9px;padding:2px}
+  .arrecg{flex:1;min-width:0;background:#080f1a;border:1px solid var(--line);border-radius:9px}
+  .arrrow svg{display:block;width:100%;height:auto}
+  .arrtxt{margin:9px 0 0;font-size:12.2px;line-height:1.55;color:#cddcee}
+  .arrtxt div{margin-top:3px}
+  .arrtxt b{color:var(--amber);font-weight:700}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  .cmp>div{background:#080f1a;border:1px solid var(--line);border-radius:10px;padding:6px 5px 4px}
+  .cmphd{font-size:11.5px;font-weight:800;text-align:center;margin-bottom:3px}
+  .cmp svg{display:block;width:100%;height:auto}
+  .gl td.ky{color:#dbe6f5;font-weight:700;white-space:nowrap}
+  .gl td.ky span{display:block;font-size:9.6px;color:var(--dim2);font-weight:600}
+  .gl td:nth-child(2){color:#ffcf8f}
+  .gl td:nth-child(3){color:#ffa8b0;font-weight:600;white-space:normal}
+  details .gl td:nth-child(2){color:#9fc4ea}
+  details .gl td:nth-child(3){color:var(--amber);font-weight:700;white-space:nowrap}
+  .secttl{font-size:15px;margin:0 0 6px;font-weight:700}
+  .schcard{border-top:1px solid var(--line);padding-top:16px;margin-top:16px}
+  .schcard:first-child{border-top:0;padding-top:8px;margin-top:8px}
+  .schcard h3{font-size:14.5px;margin:0 0 9px;font-weight:700}
+  .schcard h3 span{display:block;font-size:11.5px;color:var(--dim2);font-weight:600;margin-top:2px}
+  .schscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;
+    background:#080f1a;border:1px solid var(--line)}
+  .schscroll svg{display:block;width:660px;height:262px}
+  .crit{margin:11px 0 0;padding-left:17px;font-size:12.6px;line-height:1.62;color:#cddcee}
+  .crit li{margin-bottom:5px}
+  .crit b{color:var(--amber);font-weight:700}
+  details summary{cursor:pointer;font-size:14.5px;font-weight:700;color:var(--mon);padding:2px 0;
+    list-style:none}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:'▸ ';color:var(--dim)}
+  details[open] summary::before{content:'▾ '}
+  .gl{width:100%;border-collapse:collapse;font-size:12.3px;margin-top:10px}
+  .gl th{text-align:left;color:var(--dim2);font-weight:700;font-size:11px;padding:6px 8px;
+    border-bottom:1px solid var(--line)}
+  .gl td{padding:6px 8px;border-bottom:1px solid #16202f;color:#cddcee;vertical-align:top}
+  .gl td:nth-child(2){color:#9fc4ea}
+  .gl td:nth-child(3){color:var(--amber);font-weight:700;white-space:nowrap}
+  @media (max-width:430px){
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    h1{font-size:16.5px}
+    canvas{height:170px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .bar > i{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>심장 전도계 · 수축 · ECG 동기화</h1>
+  <p class="sub">전기 자극이 지나가는 경로와 그에 따른 심방·심실 수축, 판막 개폐, 혈류가 같은 시계로 ECG와 함께 움직입니다.</p>
+</header>
+
+<div class="card">
+  <div class="ctl-row">
+    <select id="rhythm" aria-label="리듬 선택"></select>
+    <button class="btn" id="play">일시정지</button>
+  </div>
+  <div class="ctl-row">
+    <div class="slider-row">
+      <label for="hr">심박수</label>
+      <input type="range" id="hr" min="25" max="220" value="75" step="1">
+      <span class="hrval" id="hrv">75 bpm</span>
+    </div>
+  </div>
+  <div class="ctl-row">
+    <div class="seg" id="speed" role="group" aria-label="재생 속도">
+      <button data-s="0.1">0.1x</button>
+      <button data-s="0.25">0.25x</button>
+      <button data-s="0.5">0.5x</button>
+      <button data-s="1" class="on">1x</button>
+    </div>
+    <button class="btn on" id="tLabel">해부 라벨</button>
+    <button class="btn on" id="tCond">전도계</button>
+    <button class="btn on" id="tFlow">혈류</button>
+  </div>
+  <p class="hint">전도 과정은 0.2초 안에 끝납니다. <b style="color:#bfe0ff">0.1x</b>로 낮추면 동방결절 → 심방 → 방실결절 지연 → His-Purkinje 전파를 한 단계씩 볼 수 있습니다.</p>
+</div>
+
+<div class="heartbox">
+  <div class="phase-tag" id="phase">충만기</div>
+  <svg class="heart" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet" aria-label="심장 해부 및 전도계 애니메이션">
+    <defs>
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glowS" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="2.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <radialGradient id="myoG" cx="45%" cy="35%">
+        <stop offset="0%" stop-color="#e9a3a6"/><stop offset="100%" stop-color="#bf7076"/>
+      </radialGradient>
+    </defs>
+
+    <g id="root" transform="translate(30,20)">
+
+      <!-- 대혈관 (뒤) -->
+      <g id="vessels" fill="none" stroke-linecap="round">
+        <!-- 좌측 폐정맥 (뒤로 주행) -->
+        <path d="M40,170 L120,178" stroke="#c0424a" stroke-width="13"/>
+        <path d="M42,205 L120,200" stroke="#c0424a" stroke-width="13"/>
+        <!-- 상대정맥 -->
+        <path d="M150,22 L150,150" stroke="#2f6ea8" stroke-width="30"/>
+        <!-- 대동맥 + 분지 -->
+        <path d="M232,232 L234,150 C234,113 208,96 180,96" stroke="#b93b43" stroke-width="28"/>
+        <path d="M196,96 L196,64" stroke="#b93b43" stroke-width="11"/>
+        <path d="M212,98 L212,66" stroke="#b93b43" stroke-width="11"/>
+        <path d="M226,104 L226,72" stroke="#b93b43" stroke-width="11"/>
+        <!-- 우측 폐정맥 -->
+        <path d="M348,176 L318,190" stroke="#c0424a" stroke-width="14"/>
+        <path d="M350,214 L318,206" stroke="#c0424a" stroke-width="14"/>
+      </g>
+
+      <!-- 심근 -->
+      <g id="heartBody">
+        <path id="myo" d="M100,180 C96,250 105,335 150,398 C185,447 235,450 265,420 C320,368 340,290 336,205
+          C333,150 305,128 260,124 C205,119 145,128 118,145 C104,154 100,166 100,180 Z"
+          fill="url(#myoG)" stroke="#8d4b52" stroke-width="2"/>
+
+        <!-- 심방 -->
+        <g id="gRA"><path id="cRA" d="M118,175 C118,150 140,140 165,142 C190,145 200,165 198,190
+          C196,215 175,232 150,230 C125,228 118,205 118,175 Z" fill="#25506f" stroke="#16344b" stroke-width="1.5"/></g>
+        <g id="gLA"><path id="cLA" d="M248,168 C248,146 268,137 292,139 C318,141 328,158 326,182
+          C324,208 306,222 282,222 C258,222 248,198 248,168 Z" fill="#7d2a34" stroke="#57181f" stroke-width="1.5"/></g>
+        <!-- 심실 -->
+        <g id="gRV"><path id="cRV" d="M140,255 C128,298 134,344 160,380 C175,396 192,388 194,368
+          C190,325 198,288 194,258 C178,248 154,246 140,255 Z" fill="#25506f" stroke="#16344b" stroke-width="1.5"/></g>
+        <g id="gLV"><path id="cLV" d="M226,256 C216,306 224,352 246,386 C278,356 296,308 294,256
+          C276,244 244,244 226,256 Z" fill="#7d2a34" stroke="#57181f" stroke-width="1.5"/></g>
+
+        <!-- 탈분극 / 재분극 글로우 -->
+        <g id="depol" style="mix-blend-mode:screen">
+          <use href="#cRA" id="gwRA" fill="#ffd166" opacity="0"/>
+          <use href="#cLA" id="gwLA" fill="#ffd166" opacity="0"/>
+          <use href="#cRV" id="gwRV" fill="#ffe08a" opacity="0"/>
+          <use href="#cLV" id="gwLV" fill="#ffe08a" opacity="0"/>
+          <use href="#cRV" id="rpRV" fill="#8ab4ff" opacity="0"/>
+          <use href="#cLV" id="rpLV" fill="#8ab4ff" opacity="0"/>
+        </g>
+      </g>
+
+      <!-- 폐동맥 (앞) -->
+      <path d="M199,238 C196,196 208,164 234,153 C260,145 282,153 294,169"
+        stroke="#2f6ea8" stroke-width="24" fill="none" stroke-linecap="round"/>
+      <!-- 하대정맥 (앞) -->
+      <path d="M104,468 C104,395 112,320 138,242" stroke="#2f6ea8" stroke-width="26" fill="none" stroke-linecap="round"/>
+
+      <!-- 혈류 -->
+      <g id="flow" fill="none" stroke-linecap="round" stroke-dasharray="7 15" stroke-width="5">
+        <path class="fl" data-ph="fill" d="M150,40 L150,150 C152,180 156,200 160,215" stroke="#8fd0ff"/>
+        <path class="fl" data-ph="fill" d="M108,440 C110,380 116,320 140,252" stroke="#8fd0ff"/>
+        <path class="fl" data-ph="fill" d="M162,232 C164,252 162,272 166,300" stroke="#8fd0ff"/>
+        <path class="fl" data-ph="fill" d="M344,180 L300,196 C286,210 278,226 272,244" stroke="#ff9aa2"/>
+        <path class="fl" data-ph="fill" d="M346,212 L306,206" stroke="#ff9aa2"/>
+        <path class="fl" data-ph="fill" d="M276,250 C270,272 264,286 260,300" stroke="#ff9aa2"/>
+        <path class="fl" data-ph="ej" d="M176,300 C186,262 194,244 200,230 C198,196 210,168 234,157 C258,149 280,157 292,171" stroke="#8fd0ff"/>
+        <path class="fl" data-ph="ej" d="M256,300 C248,266 238,246 233,230 L234,152 C234,118 210,101 186,101" stroke="#ff9aa2"/>
+      </g>
+
+      <!-- 판막 -->
+      <g id="valves" stroke="#fdf2f2" stroke-width="5" stroke-linecap="round" fill="none"></g>
+      <g id="valveTags" font-size="11" font-weight="700" text-anchor="middle" fill="#7a2b32"></g>
+
+      <!-- 전도계 -->
+      <g id="cond">
+        <g fill="none" stroke="#c08a2a" stroke-width="3" stroke-linecap="round" opacity=".5">
+          <path id="pInter" d="M182,152 C180,180 190,212 206,234"/>
+          <path id="pBach"  d="M182,152 C212,140 240,144 262,158"/>
+          <path id="pHis"   d="M208,240 L210,262"/>
+          <path id="pLBB"   d="M211,262 C224,290 238,330 248,366"/>
+          <path id="pRBB"   d="M209,262 C200,292 192,330 186,364"/>
+          <path id="pPKL"   d="M248,366 C264,376 282,346 291,296" stroke-dasharray="3 5"/>
+          <path id="pPKR"   d="M186,364 C174,370 162,338 150,296" stroke-dasharray="3 5"/>
+        </g>
+        <g id="condLive" fill="none" stroke="#ffd166" stroke-width="4.5" stroke-linecap="round" filter="url(#glow)">
+          <use href="#pBach"  id="lBach"  opacity="0"/>
+          <use href="#pInter" id="lInter" opacity="0"/>
+          <use href="#pHis"   id="lHis"   opacity="0"/>
+          <use href="#pLBB"   id="lLBB"   opacity="0"/>
+          <use href="#pRBB"   id="lRBB"   opacity="0"/>
+          <use href="#pPKL"   id="lPKL"   opacity="0"/>
+          <use href="#pPKR"   id="lPKR"   opacity="0"/>
+        </g>
+        <circle id="sa"  cx="182" cy="152" r="7.5" fill="#8a6a1e" stroke="#ffd166" stroke-width="2"/>
+        <circle id="avn" cx="208" cy="238" r="7"   fill="#8a6a1e" stroke="#ffd166" stroke-width="2"/>
+        <circle id="saG"  cx="182" cy="152" r="9"  fill="#ffe9a8" opacity="0" filter="url(#glow)"/>
+        <circle id="avnG" cx="208" cy="238" r="8.5" fill="#ffe9a8" opacity="0" filter="url(#glow)"/>
+        <circle id="dotA" r="5.5" fill="#fff3c4" opacity="0" filter="url(#glowS)"/>
+        <circle id="dotL" r="5"   fill="#fff3c4" opacity="0" filter="url(#glowS)"/>
+        <circle id="dotR" r="5"   fill="#fff3c4" opacity="0" filter="url(#glowS)"/>
+        <g id="ectopic" opacity="0">
+          <circle cx="176" cy="330" r="11" fill="none" stroke="#ff5d73" stroke-width="2.5"/>
+          <circle cx="176" cy="330" r="4.5" fill="#ff5d73"/>
+        </g>
+        <g id="condTags" font-size="10.5" font-weight="800" text-anchor="middle" fill="#3a2a08">
+          <g><circle cx="182" cy="152" r="0"/></g>
+        </g>
+      </g>
+
+      <!-- 라벨 -->
+      <g id="labels" font-size="12" font-weight="600" fill="#cddcee">
+        <g stroke="#43587a" stroke-width="1" fill="none" id="leaders"></g>
+        <g id="labelText"></g>
+      </g>
+    </g>
+  </svg>
+  <div class="legend">
+    <span><b>판막</b> T 삼첨판 tricuspid · P 폐동맥판 pulmonic · A 대동맥판 aortic · M 승모판 mitral</span>
+    <span><b>전도계</b> <i>1</i> 동방결절 SA node · <i>2</i> 방실결절 AV node · <i>3</i> His속 bundle of His · <i>4</i> 좌·우각 bundle branches · <i>5</i> 퍼킨제섬유 Purkinje fibers</span>
+  </div>
+</div>
+
+<div class="ecgbox"><canvas id="ecg"></canvas></div>
+
+<div class="card">
+  <div class="metrics">
+    <div class="m hr"><div class="k">심박수</div><div class="v" id="mHR">75</div><div class="u">bpm</div></div>
+    <div class="m"><div class="k">PR 간격</div><div class="v" id="mPR">160</div><div class="u">ms</div></div>
+    <div class="m"><div class="k">QRS 폭</div><div class="v" id="mQRS">90</div><div class="u">ms</div></div>
+    <div class="m co"><div class="k">상대 심박출량</div><div class="v" id="mCO">100</div><div class="u">% (교육용 추정)</div>
+      <div class="bar"><i id="coBar"></i></div></div>
+  </div>
+</div>
+
+<div class="card info">
+  <h2 id="iName">정상 동율동 (NSR)</h2>
+  <dl>
+    <dt>전기적 기전</dt><dd id="iMech"></dd>
+    <dt>ECG 소견</dt><dd id="iEcg"></dd>
+    <dt>혈역학 · 마취 관련</dt><dd id="iAnes"></dd>
+  </dl>
+</div>
+
+<section class="card">
+  <h2 class="secttl">임상에서 가장 흔한 세 가지 — 모식도</h2>
+  <p class="sub">위는 ECG, 아래는 <b style="color:#cddcee">사다리 도표(Lewis ladder diagram)</b>이며 같은 시간축을 씁니다.
+  A = 심방(atria), AV = 방실접합부(AV junction), V = 심실(ventricles)이고, 선의 기울기가 그 층을 지나는 데 걸린 전도 시간을 뜻합니다.
+  빨간 점은 이소성 초점(ectopic focus), 빗금은 전도 차단(block)입니다. 가로로 밀어서 보십시오.</p>
+  <div id="schWrap"></div>
+</section>
+
+<section class="card">
+  <h2 class="secttl">부정맥 지도 — ECG 파형과 기시 부위</h2>
+  <p class="sub">왼쪽 그림의 붉은 표시가 부정맥이 발생하는 해부학적 위치입니다.
+  ● 점은 이소성 초점(ectopic focus), ⭘ 점선 고리는 회귀회로(reentry circuit), ✕ 빗금은 전도 차단(block)을 뜻합니다.</p>
+  <div id="arrWrap"></div>
+</section>
+
+<section class="card">
+  <details>
+    <summary>용어 정리 (한글 · English · 약어)</summary>
+    <table class="gl">
+      <thead><tr><th>한글</th><th>English</th><th>약어</th></tr></thead>
+      <tbody id="glBody"></tbody>
+    </table>
+    <p class="hint">※ IVC는 문맥에 따라 하대정맥(inferior vena cava)과 등용성 수축기(isovolumetric contraction)를 모두 뜻하므로 약어 사용 시 주의합니다.</p>
+  </details>
+</section>
+
+<footer>교육용 시뮬레이션입니다. 파형·간격·심박출량은 개념 이해를 위해 단순화된 모델이며 실제 환자 판독이나 임상 판단의 근거로 사용하지 마십시오.</footer>
+</div>
+
+<script>
+"use strict";
+/* ══════════════ 리듬 정의 ══════════════ */
+const RH = {
+  nsr:{n:'정상 동율동 (NSR)',hr:75,min:50,max:100,
+    mech:'동방결절(SA node)이 주기적으로 흥분 → 심방 전체와 Bachmann속을 통해 좌심방으로 전파 → 방실결절에서 약 0.1초 지연(심실 충만 시간 확보) → His속 → 좌·우각 → 퍼킨제섬유 → 심실근이 거의 동시에 수축합니다.',
+    ecg:'P–QRS–T가 1:1로 규칙적. PR 0.12–0.20초, QRS < 0.12초, 규칙적인 RR.',
+    anes:'심방수축(atrial kick)이 이완기말 심실 충만의 약 20–30%를 담당합니다. 심박출량 = HR × 일회박출량이며, 관상동맥 관류는 대부분 이완기에 이루어집니다.'},
+  brady:{n:'동서맥 (Sinus bradycardia)',hr:45,min:25,max:60,
+    mech:'전도 경로는 정상이지만 동방결절 발화 빈도가 감소합니다. 미주신경 항진이 주된 원인입니다.',
+    ecg:'정상 P–QRS–T, 심박수 60회/분 미만, 규칙적.',
+    anes:'마취 중 흔한 원인: 고용량 opioid(remifentanil), dexmedetomidine, propofol, neostigmine, 복강경 기복·복막 견인, 안구심장반사, 척추마취의 고위 교감신경 차단. 증상성이면 atropine 0.5 mg, glycopyrrolate, ephedrine을 고려하고 자극 원인을 즉시 제거합니다.'},
+  tachy:{n:'동빈맥 (Sinus tachycardia)',hr:130,min:100,max:180,
+    mech:'동방결절 발화가 빨라진 상태로 전도 경로 자체는 정상입니다.',
+    ecg:'정상 형태의 P파, 규칙적, 100회/분 초과. 빠르면 P파가 앞선 T파에 묻힐 수 있습니다.',
+    anes:'얕은 마취·통증, 저혈량, 발열, 저산소·고탄산, 갑상선중독증, 악성고열, ephedrine·ketamine·atropine이 원인. 이완기 단축으로 심실 충만과 관상동맥 관류가 함께 줄어 허혈 위험이 커지므로 원인 교정이 우선입니다.'},
+  apc:{n:'심방조기수축 (APC / PAC)',hr:70,min:50,max:110,
+    mech:'심방 내 이소성 초점(ectopic atrial focus)이 동방결절(SA node)보다 먼저 발화합니다. 자극은 방실결절(AV node)–His속(bundle of His)–퍼킨제섬유(Purkinje fibers)라는 정상 경로를 그대로 이용하므로 QRS는 좁게 유지됩니다.',
+    ecg:'예정보다 이른 P′파(동성 P와 모양이 다름, 선행 T파에 겹칠 수 있음), 좁은 QRS(<0.12초), 불완전 보상성 휴지기(non-compensatory pause).',
+    anes:'대개 양성이지만 빈발하면 심방세동(atrial fibrillation)의 전조일 수 있습니다. 카페인, 스트레스, 저칼륨혈증, 저마그네슘혈증, 심방 확장, 중심정맥관 끝의 심방 자극을 확인합니다.'},
+  afib:{n:'심방세동 (Atrial fibrillation)',hr:110,min:50,max:180,
+    mech:'주로 폐정맥 기시부에서 발생한 다발성 무질서한 전기 파형이 심방을 뒤덮습니다. 심방은 조직적으로 수축하지 못하고 잔떨림만 하며, 방실결절이 불규칙하게 걸러 심실로 전달합니다.',
+    ecg:'P파 소실, 기저선의 f파(세동파), 완전히 불규칙한 RR 간격, 대개 좁은 QRS.',
+    anes:'Atrial kick 소실로 심박출량이 10–30% 감소하며 이완기 충만에 의존적인 환자(비후성심근증, 대동맥판협착, 이완기부전)에서 특히 취약합니다. 좌심방이 혈전·색전 위험이 있어 항응고 여부를 확인하고, 혈역학적으로 불안정하면 동기화 심장율동전환을 시행합니다.'},
+  aflutter:{n:'심방조동 (Atrial flutter)',hr:75,min:50,max:150,
+    mech:'대부분 우심방 내 삼첨판 협부(CTI)를 도는 거대 회귀회로(macro-reentry)로 심방이 약 250–350회/분으로 규칙적으로 흥분하고, 방실결절이 2:1, 3:1, 4:1로 걸러 전달합니다.',
+    ecg:'II·III·aVF에서 톱니 모양의 조동파(F wave), 심방 약 300회/분, 대개 규칙적인 QRS. 2:1 전도 시 심실 150회/분.',
+    anes:'CTI가 고주파 절제(RFA)의 표적입니다. 2:1 전도로 갑자기 심실 반응이 빨라질 수 있고, 심방세동과 마찬가지로 atrial kick이 소실됩니다.'},
+  svt:{n:'발작성 상심실성빈맥 (AVNRT)',hr:180,min:140,max:240,
+    mech:'방실결절의 빠른 경로·느린 경로 이중 전도로를 도는 회귀성 빈맥입니다. 심방과 심실이 거의 동시에 흥분합니다.',
+    ecg:'규칙적인 좁은 QRS 빈맥 150–250회/분, P파는 QRS에 묻히거나 직후 가성 S/r\' 형태로 나타납니다.',
+    anes:'미주신경 자극 → adenosine 6 mg 급속 정주 후 12 mg. 불안정하면 동기화 심장율동전환. WPW-AVRT는 Kent속(우회로)이 회로에 참여하며, 이 경우 절제 표적은 우회로입니다.'},
+  avb1:{n:'1도 방실차단',hr:70,min:40,max:110,
+    mech:'방실결절 수준의 전도 지연이지만 모든 심방 자극이 결국 심실로 전달됩니다.',
+    ecg:'PR 간격 0.20초 초과로 일정하게 연장, 모든 P 뒤에 QRS가 존재.',
+    anes:'대개 무증상이며 특별한 처치가 필요하지 않습니다. 다만 β차단제, 칼슘통로차단제, digoxin, 고용량 dexmedetomidine 병용 시 더 높은 등급의 차단으로 진행할 수 있습니다.'},
+  wenck:{n:'2도 1형 방실차단 (Wenckebach)',hr:70,min:40,max:110,
+    mech:'방실결절의 전도 능력이 박동마다 점진적으로 지쳐 결국 한 번의 자극이 차단됩니다.',
+    ecg:'PR 간격이 점차 길어지다 P파 하나가 QRS 없이 떨어지고, 이후 주기가 반복됩니다.',
+    anes:'대개 양성이며 atropine에 반응합니다. 미주신경 항진 상황에서 흔히 관찰됩니다.'},
+  avb3:{n:'3도(완전) 방실차단',hr:80,min:50,max:110,
+    mech:'심방–심실 전도가 완전히 차단되어 심방은 동방결절, 심실은 접합부 또는 심실 이탈 조율기가 각각 독립적으로 뜁니다(방실 해리).',
+    ecg:'P파와 QRS가 서로 무관하게 진행, P 간격·R 간격은 각각 규칙적, 심실 이탈 30–45회/분에 넓은 QRS.',
+    anes:'심방수축이 닫힌 방실판막에 부딪히면 대포 a파가 나타납니다. Atropine 반응이 나쁘므로 경피/경정맥 pacing 준비, isoproterenol 또는 epinephrine 주입을 고려합니다. 슬라이더의 심박수는 심방 박동수입니다.'},
+  pvc:{n:'심실조기수축 (PVC)',hr:75,min:50,max:110,
+    mech:'심실 내 이소성 초점이 다음 동방결절 자극보다 먼저 발화합니다. 정상 전도계를 거치지 않고 심실근을 직접 타고 퍼지므로 전파가 느립니다.',
+    ecg:'선행 P파 없이 넓고 기괴한 QRS, T파는 반대 방향, 이후 보상성 휴지기가 따릅니다.',
+    anes:'충만 시간이 부족해 일회박출량이 작고 맥박 결손(pulse deficit)이 생겨 SpO₂ 파형이 건너뜁니다. 저칼륨·저마그네슘혈증, 저산소, 고탄산, 얕은 마취, 중심정맥관 자극을 먼저 확인합니다.'},
+  vt:{n:'심실빈맥 (VT)',hr:180,min:120,max:250,
+    mech:'허혈성 반흔 주변의 회귀회로 또는 우심실유출로(RVOT) 등 이소성 초점에서 기원합니다. His-Purkinje를 이용하지 못해 심실 전체 흥분에 시간이 오래 걸립니다.',
+    ecg:'넓은 QRS(≥0.12초)가 3회 이상 연속, 대개 규칙적, 방실 해리·융합박동이 진단에 도움이 됩니다.',
+    anes:'이완기 충만 시간과 심방수축이 모두 사라져 심박출량이 급감합니다. 맥박 있고 불안정하면 즉시 동기화 심장율동전환, 맥박 없으면 제세동. 안정적이면 amiodarone 150 mg을 10분에 걸쳐 투여합니다.'},
+  vfib:{n:'심실세동 (VF)',hr:0,min:0,max:0,
+    mech:'심실 전체가 무질서하게 흥분하여 조직적인 수축이 완전히 사라지고 심실은 떨기만 합니다.',
+    ecg:'식별 가능한 QRS가 없는 불규칙한 진동 파형. 시간이 지나면 진폭이 감소합니다.',
+    anes:'심박출량 0인 심정지입니다. 즉시 제세동(이상성 120–200 J)과 고품질 흉부압박, epinephrine 1 mg을 3–5분마다 투여합니다.'},
+  asys:{n:'무수축 (Asystole)',hr:0,min:0,max:0,
+    mech:'심장의 전기 활동이 소실된 상태입니다.',
+    ecg:'평탄한 기저선. 반드시 유도·전극 연결과 이득(gain)을 먼저 확인합니다.',
+    anes:'제세동 적응증이 아닙니다. 흉부압박과 epinephrine 1 mg을 3–5분마다 투여하며 가역적 원인(H\'s & T\'s)을 찾습니다.'}
+};
+
+/* ══════════════ 리듬 엔진 ══════════════ */
+const eng = {
+  rhythm:'nsr', hr:75, ev:[], genUntil:0, st:{},
+  reset(t){ this.st={nextA:t+.35,nextV:t+.35,lastV:t-1,i:0,n:0,k:0,skip:false}; this.genUntil=t; },
+  setRhythm(r,t){ this.rhythm=r; this.hr=RH[r].hr||75; this.cut(t); },
+  setHR(h,t){ this.hr=h; this.cut(t); },
+  cut(t){ const c=t+.05; this.ev=this.ev.filter(e=>e.t<=c);
+    const lv=[...this.ev].reverse().find(e=>e.k==='V');
+    this.reset(c); this.st.lastV=lv?lv.t:c-1; },
+  pushA(t,o){ o=o||{}; o.k='A'; o.t=t; this.ev.push(o); },
+  pushV(t,o){ o=o||{}; o.k='V'; o.t=t;
+    const rr=t-this.st.lastV; this.st.lastV=t;
+    let fill=Math.max(.18,Math.min(1,(rr-.20)/.55));
+    if(!o.kick) fill*=.82;                       // 심방수축 기여 없음
+    o.sv=Math.max(.05,fill*(o.out==null?1:o.out));
+    this.ev.push(o); },
+  ensure(tmax){ let g=0; while(this.genUntil<tmax && g++<400) this.step();
+    this.ev.sort((a,b)=>a.t-b.t); },
+  prune(t0){ if(this.ev.length>260) this.ev=this.ev.filter(e=>e.t>t0); },
+  step(){
+    const s=this.st, r=this.rhythm, rr=60/Math.max(20,this.hr);
+    switch(r){
+      case 'nsr': case 'brady': case 'tachy': case 'avb1': {
+        const pr=(r==='avb1')?.32:.16, tA=s.nextA;
+        this.pushA(tA,{p:true,eff:true,pr});
+        this.pushV(tA+pr,{cond:true,wide:false,out:1,aT:tA,pr,kick:true});
+        s.nextA=tA+rr; this.genUntil=s.nextA; break; }
+      case 'apc': {
+        const pr=.16, tA=s.nextA; s.n++;
+        if(s.n%4===0){
+          const tE=tA-rr*.38;                       // 조기 심방 발화
+          this.pushA(tE,{p:true,eff:true,pr:.20,apc:true});
+          this.pushV(tE+.20,{cond:true,wide:false,out:.85,aT:tE,pr:.20,kick:true});
+          s.nextA=tE+rr;                            // 동방결절 재설정 → 불완전 보상성 휴지기
+        }else{
+          this.pushA(tA,{p:true,eff:true,pr});
+          this.pushV(tA+pr,{cond:true,wide:false,out:1,aT:tA,pr,kick:true});
+          s.nextA=tA+rr;
+        }
+        this.genUntil=s.nextA; break; }
+      case 'wenck': {
+        const prs=[.16,.26,.40], i=s.i%4, tA=s.nextA;
+        if(i<3){ this.pushA(tA,{p:true,eff:true,pr:prs[i]});
+                 this.pushV(tA+prs[i],{cond:true,wide:false,out:1,aT:tA,pr:prs[i],kick:true}); }
+        else { this.pushA(tA,{p:true,eff:true,blocked:true,pr:.40}); }
+        s.i++; s.nextA=tA+rr; this.genUntil=s.nextA; break; }
+      case 'avb3': {
+        const tA=s.nextA; this.pushA(tA,{p:true,eff:true,diss:true}); s.nextA=tA+rr;
+        const esc=60/38;
+        while(s.nextV<s.nextA){ this.pushV(s.nextV,{wide:true,out:.85,esc:true}); s.nextV+=esc; }
+        this.genUntil=Math.min(s.nextA,s.nextV); break; }
+      case 'afib': {
+        const t0=s.nextV; this.pushV(t0,{cond:true,wide:false,out:1,af:true});
+        s.nextV=t0+rr*(.55+Math.random()*.95); this.genUntil=s.nextV; break; }
+      case 'aflutter': {
+        const ratio=Math.max(2,Math.min(6,Math.round(300/Math.max(40,this.hr))));
+        const tA=s.nextA; this.pushA(tA,{p:false,flut:true,eff:false}); s.k++;
+        if(s.k%ratio===0) this.pushV(tA+.14,{cond:true,wide:false,out:.95});
+        s.nextA=tA+.2; this.genUntil=s.nextA; break; }
+      case 'svt': {
+        const t0=s.nextV;
+        this.pushA(t0+.02,{p:false,retro:true,eff:false});
+        this.pushV(t0,{cond:true,wide:false,out:1,avnrt:true});
+        s.nextV=t0+rr; this.genUntil=s.nextV; break; }
+      case 'pvc': {
+        const pr=.16, tA=s.nextA;
+        if(s.skip){ this.pushA(tA,{p:true,eff:true,blocked:true,pr}); s.skip=false; }
+        else{
+          this.pushA(tA,{p:true,eff:true,pr});
+          this.pushV(tA+pr,{cond:true,wide:false,out:1,aT:tA,pr,kick:true});
+          s.n++;
+          if(s.n%3===0){ this.pushV(tA+pr+rr*.55,{wide:true,out:.42,ect:true}); s.skip=true; }
+        }
+        s.nextA=tA+rr; this.genUntil=s.nextA; break; }
+      case 'vt': {
+        const t0=s.nextV; this.pushV(t0,{wide:true,out:.45,ect:true}); s.nextV=t0+rr;
+        while(s.nextA<s.nextV){ this.pushA(s.nextA,{p:true,eff:false,diss:true}); s.nextA+=60/80; }
+        this.genUntil=Math.min(s.nextV,s.nextA); break; }
+      default: this.genUntil+=1;
+    }
+  }
+};
+
+/* ══════════════ 파형 ══════════════ */
+const G=(x,m,s,a)=>{const d=(x-m)/s;return a*Math.exp(-.5*d*d);};
+function nz(t){const x=Math.sin(t*1271.73)*43758.5453;return (x-Math.floor(x))-.5;}
+function ecgAt(t){
+  const r=eng.rhythm; let v=0;
+  if(r==='asys') return nz(t)*.02;
+  if(r==='vfib'){
+    const m=.75+.35*Math.sin(2*Math.PI*.83*t);
+    return m*(.52*Math.sin(2*Math.PI*4.9*t)+.34*Math.sin(2*Math.PI*7.7*t+1.1)
+      +.24*Math.sin(2*Math.PI*11.9*t+2.3)+.14*Math.sin(2*Math.PI*17.3*t+.6));
+  }
+  if(r==='afib') v+=.05*Math.sin(2*Math.PI*7.3*t)+.035*Math.sin(2*Math.PI*11.9*t+1)
+                  +.028*Math.sin(2*Math.PI*5.1*t+2.2);
+  if(r==='aflutter'){ const u=(t*5)%1; v+= u<.78 ? (.10-u*.30) : (-.13+(u-.78)/.22*.36); }
+  const ev=eng.ev;
+  for(let i=0;i<ev.length;i++){
+    const e=ev[i], d=t-e.t;
+    if(d<-.15||d>.62) continue;
+    if(e.k==='A'){
+      if(e.p) v+= e.apc ? (G(t,e.t+.042,.018,.20)+G(t,e.t+.082,.022,-.07))   // P′ : 뾰족·이상 형태
+                        : G(t,e.t+.045,.024,.14);
+      if(e.retro) v+=G(t,e.t+.05,.02,-.08); }
+    else if(e.wide){                                                          // 심실 기시 : 넓고 기괴, 반대 방향 T
+      v+=G(t,e.t+.030,.022,.40)+G(t,e.t+.065,.026,1.10)
+        +G(t,e.t+.140,.038,-.45)+G(t,e.t+.38,.070,-.36);
+    }else{
+      v+=G(t,e.t+.018,.009,-.07)+G(t,e.t+.045,.012,1.05)+G(t,e.t+.075,.013,-.22)
+        +G(t,e.t+.30,.048,.30);
+    }
+  }
+  return v+nz(t*3.1)*.012;
+}
+
+/* ══════════════ 기계적 모델 ══════════════ */
+const sm=(x)=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+const bump=(t,t0,d)=>{const x=(t-t0)/d;return (x<0||x>1)?0:Math.sin(Math.PI*x);};
+function ventEnv(u){ const sys=.32, rise=.12;
+  if(u<0||u>sys) return 0; return u<rise? sm(u/rise) : sm(1-(u-rise)/(sys-rise)); }
+function atrEnv(u){ const d=.14; if(u<0||u>d) return 0; return u<.05? sm(u/.05) : sm(1-(u-.05)/(d-.05)); }
+
+/* ══════════════ SVG 준비 ══════════════ */
+const $=(id)=>document.getElementById(id);
+const CEN={RA:[158,186],LA:[287,181],RV:[166,316],LV:[259,316]};
+const pInter=$('pInter'), pLBB=$('pLBB'), pRBB=$('pRBB');
+const LenI=pInter.getTotalLength(), LenL=pLBB.getTotalLength(), LenR=pRBB.getTotalLength();
+
+// 판막
+const VD=[
+  {id:'T',hL:[140,242],hR:[190,242],cl:[[164,260],[170,260]],op:[[150,276],[184,276]],tag:[165,236]},
+  {id:'M',hL:[244,244],hR:[300,244],cl:[[268,262],[276,262]],op:[[252,278],[292,278]],tag:[272,238]},
+  {id:'P',hL:[186,224],hR:[212,224],cl:[[197,212],[201,212]],op:[[188,208],[210,208]],tag:[199,244],up:1},
+  {id:'A',hL:[220,222],hR:[246,222],cl:[[231,210],[235,210]],op:[[222,206],[244,206]],tag:[233,242],up:1}
+];
+const vg=$('valves');
+VD.forEach(v=>{ ['L','R'].forEach(s=>{ const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.id='v'+v.id+s; vg.appendChild(p); }); });
+const vt=$('valveTags');
+VD.forEach(v=>{ const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',v.tag[0]);c.setAttribute('cy',v.tag[1]);c.setAttribute('r',8);
+  c.setAttribute('fill','#ffe3e3');c.setAttribute('stroke','#a4535a');c.setAttribute('stroke-width','1.2');
+  vt.appendChild(c);
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',v.tag[0]);t.setAttribute('y',v.tag[1]+3.8);t.textContent=v.id; vt.appendChild(t); });
+function setValve(v,open){
+  ['L','R'].forEach((s,i)=>{
+    const h=(s==='L')?v.hL:v.hR, cl=v.cl[i], op=v.op[i];
+    const x=cl[0]+(op[0]-cl[0])*open, y=cl[1]+(op[1]-cl[1])*open;
+    $('v'+v.id+s).setAttribute('d','M'+h[0]+','+h[1]+' L'+x.toFixed(1)+','+y.toFixed(1));
+  });
+}
+
+// 전도계 번호 뱃지
+const CT=[[182,152,'1'],[208,238,'2'],[209,268,'3'],[229,300,'4'],[286,322,'5']];
+const ctg=$('condTags'); ctg.innerHTML='';
+CT.forEach(c=>{ const cc=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  cc.setAttribute('cx',c[0]+14);cc.setAttribute('cy',c[1]-12);cc.setAttribute('r',7.5);
+  cc.setAttribute('fill','#ffd166');cc.setAttribute('stroke','#8a6a1e');cc.setAttribute('stroke-width','1');
+  ctg.appendChild(cc);
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',c[0]+14);t.setAttribute('y',c[1]-8.6);t.textContent=c[2];ctg.appendChild(t); });
+
+// 해부 라벨 (한글 + 영문 의학용어)
+const LB=[
+  ['상대정맥','superior vena cava (SVC)',[95,58],'end',[136,76]],
+  ['폐정맥','pulmonary vein (PV)',[95,126],'end',[70,170]],
+  ['우심방','right atrium (RA)',[95,196],'end',[130,192]],
+  ['삼첨판','tricuspid valve',[95,248],'end',[152,242]],
+  ['폐동맥판','pulmonic valve',[95,292],'end',[192,240]],
+  ['우심실','right ventricle (RV)',[95,340],'end',[146,316]],
+  ['하대정맥','inferior vena cava (IVC)',[95,424],'end',[108,410]],
+  ['대동맥','aorta (Ao)',[348,72],'start',[250,104]],
+  ['폐동맥','pulmonary artery (PA)',[348,124],'start',[292,168]],
+  ['폐정맥','pulmonary vein (PV)',[348,176],'start',[344,182]],
+  ['좌심방','left atrium (LA)',[348,228],'start',[312,202]],
+  ['승모판','mitral valve',[348,272],'start',[288,246]],
+  ['대동맥판','aortic valve',[348,314],'start',[240,226]],
+  ['좌심실','left ventricle (LV)',[348,358],'start',[284,320]],
+  ['심실중격','interventricular septum',[348,404],'start',[214,322]]
+];
+(function(){ const NS='http://www.w3.org/2000/svg', L=$('leaders'), T=$('labelText');
+  LB.forEach(l=>{
+    const x=l[2][0], y=l[2][1], a=l[3], tg=l[4];
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('text-anchor',a);
+    const s1=document.createElementNS(NS,'tspan');
+    s1.setAttribute('x',x); s1.setAttribute('font-size','12'); s1.setAttribute('fill','#dbe6f5');
+    s1.textContent=l[0];
+    const s2=document.createElementNS(NS,'tspan');
+    s2.setAttribute('x',x); s2.setAttribute('dy','11.5'); s2.setAttribute('font-size','8.6');
+    s2.setAttribute('fill','#7f97b5'); s2.setAttribute('font-weight','500'); s2.textContent=l[1];
+    t.appendChild(s1); t.appendChild(s2); T.appendChild(t);
+    const sx=(a==='end')?x-4:x+4, sy=(tg[1]>y+12)?y+15:y-4;
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d','M'+sx+','+sy+' L'+tg[0]+','+tg[1]);
+    L.appendChild(p);
+  });
+})();
+
+/* ══════════════ ECG 캔버스 ══════════════ */
+const cv=$('ecg'), cx2=cv.getContext('2d');
+let CW=0,CH=0;
+function resize(){ const r=cv.getBoundingClientRect(), d=Math.min(2,window.devicePixelRatio||1);
+  CW=Math.max(200,Math.round(r.width)); CH=Math.round(r.height);
+  cv.width=CW*d; cv.height=CH*d; cx2.setTransform(d,0,0,d,0,0); }
+window.addEventListener('resize',resize);
+
+const WIN=6; // 화면에 보이는 시간(초)
+function drawECG(t){
+  const g=cx2, pps=CW/WIN, t0=t-WIN, mvpx=CH*0.30;
+  g.fillStyle='#050a10'; g.fillRect(0,0,CW,CH);
+  // 그리드
+  g.lineWidth=1;
+  g.strokeStyle='rgba(38,224,127,.07)'; g.beginPath();
+  for(let s=Math.ceil(t0/0.2)*0.2;s<t;s+=0.2){const x=(s-t0)*pps;g.moveTo(x,0);g.lineTo(x,CH);}
+  for(let y=CH/2;y<CH;y+=mvpx*0.2){g.moveTo(0,y);g.lineTo(CW,y);}
+  for(let y=CH/2;y>0;y-=mvpx*0.2){g.moveTo(0,y);g.lineTo(CW,y);}
+  g.stroke();
+  g.strokeStyle='rgba(38,224,127,.16)'; g.beginPath();
+  for(let s=Math.ceil(t0);s<t;s+=1){const x=(s-t0)*pps;g.moveTo(x,0);g.lineTo(x,CH);}
+  g.moveTo(0,CH/2);g.lineTo(CW,CH/2);
+  g.stroke();
+  // 파형
+  g.strokeStyle='#25e07f'; g.lineWidth=2; g.lineJoin='round'; g.lineCap='round';
+  g.shadowColor='rgba(37,224,127,.55)'; g.shadowBlur=6;
+  g.beginPath();
+  for(let x=0;x<=CW;x++){ const tt=t0+x/pps, y=CH/2-ecgAt(tt)*mvpx;
+    if(x===0)g.moveTo(x,y); else g.lineTo(x,y); }
+  g.stroke(); g.shadowBlur=0;
+  // 이소성 박동 강조: 심실 기시 = 빨강, 심방 기시(APC) = 주황
+  for(const e of eng.ev){
+    let a,b,col;
+    if(e.k==='V'&&(e.ect||e.esc)){ a=e.t-.06; b=e.t+.52; col='#ff5d73'; }
+    else if(e.k==='A'&&e.apc){ a=e.t-.06; b=e.t+.46; col='#ffb457'; }
+    else continue;
+    if(b<t0||a>t) continue;
+    const xa=Math.max(0,Math.floor((a-t0)*pps)), xb=Math.min(CW,Math.ceil((b-t0)*pps));
+    g.strokeStyle=col; g.beginPath();
+    for(let x=xa;x<=xb;x++){ const tt=t0+x/pps, y=CH/2-ecgAt(tt)*mvpx;
+      if(x===xa)g.moveTo(x,y); else g.lineTo(x,y); }
+    g.stroke();
+  }
+  // 파형 표지
+  g.font='600 10px system-ui,sans-serif'; g.textAlign='center';
+  const r=eng.rhythm;
+  for(const e of eng.ev){
+    if(e.t<t0+.3||e.t>t-.05) continue;
+    if(e.k==='A'&&e.p){ g.fillStyle=e.apc?'#ff7a85':'#8fd0ff';
+      g.fillText(e.apc?'P′':'P',(e.t+.045-t0)*pps,CH/2-mvpx*.19-8); }
+    if(e.k==='V'){ g.fillStyle='#ffd166';
+      g.fillText(e.wide?'QRS(wide)':'QRS',(e.t+.05-t0)*pps,CH/2-mvpx*(e.wide?1.15:1.1)-4);
+      if(r!=='svt'&&eng.hr<150){ g.fillStyle='#c4b5fd';
+        g.fillText('T',(e.t+(e.wide?.36:.30)-t0)*pps,CH/2-mvpx*(e.wide?-.42:.32)-8); } }
+  }
+  // 헤더
+  g.textAlign='left'; g.font='700 11.5px system-ui,sans-serif'; g.fillStyle='#25e07f';
+  g.fillText('II', 10, 17);
+  g.font='600 10.5px system-ui,sans-serif'; g.fillStyle='#5f7793';
+  g.fillText('굵은 세로선 = 1초 · 세로 1칸 = 0.1 mV · 화면 6초', 28, 17);
+  g.textAlign='right'; g.font='700 11.5px system-ui,sans-serif'; g.fillStyle='#8ba2c0';
+  g.fillText(RH[eng.rhythm].n, CW-10, 17);
+}
+
+/* ══════════════ 애니메이션 ══════════════ */
+let simT=0, playing=true, speed=1, lastNow=performance.now();
+let avOpen=1, slOpen=0, flowOff=0, coDisp=100;
+
+function tr(el,c,sx,sy){ el.setAttribute('transform',
+  'translate('+c[0]+','+c[1]+') scale('+sx.toFixed(3)+','+sy.toFixed(3)+') translate('+(-c[0])+','+(-c[1])+')'); }
+
+function update(t,dt){
+  const R=eng.rhythm, ev=eng.ev;
+  let vA=0, aA=0, sv=0, actV=null, actA=null;
+  for(const e of ev){
+    const d=t-e.t; if(d<-.05||d>.7) continue;
+    if(e.k==='V'){ const v=ventEnv(d-.04)*e.sv;
+      if(v>vA){vA=v; sv=e.sv;} if(d>=0&&d<.5&&(!actV||e.t>actV.t)) actV=e; }
+    else if(e.eff){ const a=atrEnv(d-.03); if(a>aA)aA=a; if(d>=0&&d<.3&&(!actA||e.t>actA.t))actA=e; }
+  }
+  if(R==='vfib'){ vA=.10+.07*Math.sin(t*46)+.05*Math.sin(t*29+1); aA=.06*Math.sin(t*33); sv=0; }
+  if(R==='asys'){ vA=0; aA=0; sv=0; }
+  if(R==='afib'||R==='aflutter'){ aA=.10+.08*Math.sin(t*(R==='afib'?55:31)); }
+
+  // 심근 변형
+  tr($('gRV'),CEN.RV,1-.30*vA,1-.15*vA);
+  tr($('gLV'),CEN.LV,1-.32*vA,1-.16*vA);
+  const aDist=1+.05*vA;                       // 심실 수축 중 심방은 채워지며 팽창
+  tr($('gRA'),CEN.RA,(1-.18*aA)*aDist,(1-.14*aA)*aDist);
+  tr($('gLA'),CEN.LA,(1-.18*aA)*aDist,(1-.14*aA)*aDist);
+  $('heartBody').style.transformOrigin='230px 300px';
+  $('heartBody').setAttribute('transform','rotate('+(2.2*vA).toFixed(2)+' 230 300) scale('+(1+.015*vA).toFixed(4)+')');
+
+  // 판막
+  const k=Math.min(1,dt*26);
+  avOpen += ((vA<.07?1:0)-avOpen)*k;
+  slOpen += ((vA>.30?1:0)-slOpen)*k;
+  setValve(VD[0],avOpen); setValve(VD[1],avOpen);
+  setValve(VD[2],slOpen); setValve(VD[3],slOpen);
+
+  // 혈류
+  flowOff -= dt*70;
+  const fl=document.querySelectorAll('.fl');
+  fl.forEach(p=>{ p.style.strokeDashoffset=flowOff;
+    p.setAttribute('opacity', showFlow ? (p.dataset.ph==='fill'? (avOpen*.85).toFixed(2) : (slOpen*.9).toFixed(2)) : 0); });
+
+  // 전도계 활성도
+  const L={sa:0,bach:0,inter:0,avn:0,his:0,lbb:0,rbb:0,pk:0,vRA:0,vLA:0,vRV:0,vLV:0,rp:0};
+  let dA=-1,dLR=-1;
+  for(const e of ev){
+    const d=t-e.t;
+    if(e.k==='A'){
+      if(d<-.05||d>.6) continue;
+      if(e.p){
+        L.sa=Math.max(L.sa,bump(t,e.t-.01,.10));
+        L.vRA=Math.max(L.vRA,bump(t,e.t,.12)); L.vLA=Math.max(L.vLA,bump(t,e.t+.03,.12));
+        L.bach=Math.max(L.bach,bump(t,e.t+.01,.09));
+        if(!e.diss){ const pr=e.pr||.16;
+          L.inter=Math.max(L.inter,bump(t,e.t,pr*.55));
+          L.avn=Math.max(L.avn,bump(t,e.t+pr*.45,pr*.60));
+          if(t>=e.t&&t<=e.t+pr*.55) dA=(t-e.t)/(pr*.55);
+        }
+      }
+      if(e.flut||R==='afib'){ L.vRA=Math.max(L.vRA,.30+.28*Math.sin(t*47)); L.vLA=Math.max(L.vLA,.30+.28*Math.sin(t*39+1));
+        L.avn=Math.max(L.avn,.22); }
+    }else{
+      if(d<-.08||d>.7) continue;
+      if(e.wide){
+        L.vRV=Math.max(L.vRV,bump(t,e.t,.18)); L.vLV=Math.max(L.vLV,bump(t,e.t+.05,.18));
+        L.pk=Math.max(L.pk,bump(t,e.t+.06,.14));
+        if(e.esc){ L.his=Math.max(L.his,bump(t,e.t-.02,.06)); }
+      }else{
+        L.his=Math.max(L.his,bump(t,e.t-.04,.07));
+        L.lbb=Math.max(L.lbb,bump(t,e.t-.015,.06)); L.rbb=Math.max(L.rbb,bump(t,e.t-.015,.06));
+        L.pk=Math.max(L.pk,bump(t,e.t+.015,.07));
+        L.vRV=Math.max(L.vRV,bump(t,e.t+.02,.10)); L.vLV=Math.max(L.vLV,bump(t,e.t+.03,.10));
+        if(t>=e.t-.02&&t<=e.t+.05) dLR=(t-(e.t-.02))/.07;
+      }
+      L.rp=Math.max(L.rp,bump(t,e.t+(e.wide?.28:.24),.18));
+    }
+  }
+  if(R==='vfib'){ L.vRV=.35+.3*Math.sin(t*41); L.vLV=.35+.3*Math.sin(t*37+2); }
+
+  $('saG').setAttribute('opacity',L.sa.toFixed(2));
+  $('avnG').setAttribute('opacity',L.avn.toFixed(2));
+  $('lBach').setAttribute('opacity',L.bach.toFixed(2));
+  $('lInter').setAttribute('opacity',L.inter.toFixed(2));
+  $('lHis').setAttribute('opacity',L.his.toFixed(2));
+  $('lLBB').setAttribute('opacity',L.lbb.toFixed(2));
+  $('lRBB').setAttribute('opacity',L.rbb.toFixed(2));
+  $('lPKL').setAttribute('opacity',L.pk.toFixed(2));
+  $('lPKR').setAttribute('opacity',L.pk.toFixed(2));
+  $('gwRA').setAttribute('opacity',(L.vRA*.55).toFixed(2));
+  $('gwLA').setAttribute('opacity',(L.vLA*.55).toFixed(2));
+  $('gwRV').setAttribute('opacity',(L.vRV*.5).toFixed(2));
+  $('gwLV').setAttribute('opacity',(L.vLV*.5).toFixed(2));
+  $('rpRV').setAttribute('opacity',(L.rp*.22).toFixed(2));
+  $('rpLV').setAttribute('opacity',(L.rp*.22).toFixed(2));
+  $('ectopic').setAttribute('opacity',(R==='vt'||R==='pvc')?(0.35+L.vRV*.65).toFixed(2):0);
+
+  // 이동하는 자극 점
+  if(dA>=0&&dA<=1){ const p=pInter.getPointAtLength(LenI*dA);
+    $('dotA').setAttribute('cx',p.x);$('dotA').setAttribute('cy',p.y);$('dotA').setAttribute('opacity',1); }
+  else $('dotA').setAttribute('opacity',0);
+  if(dLR>=0&&dLR<=1){
+    const a=pLBB.getPointAtLength(LenL*dLR), b=pRBB.getPointAtLength(LenR*dLR);
+    $('dotL').setAttribute('cx',a.x);$('dotL').setAttribute('cy',a.y);$('dotL').setAttribute('opacity',1);
+    $('dotR').setAttribute('cx',b.x);$('dotR').setAttribute('cy',b.y);$('dotR').setAttribute('opacity',1);
+  } else { $('dotL').setAttribute('opacity',0); $('dotR').setAttribute('opacity',0); }
+
+  // 위상 표시
+  let ph='충만기 filling (diastole)';
+  if(R==='vfib') ph='심실세동 — 심박출 없음';
+  else if(R==='asys') ph='무수축 asystole — 전기·기계 활동 없음';
+  else if(actV){ const u=t-actV.t;
+    if(u<.04) ph='심실 탈분극 ventricular depolarization';
+    else if(u<.10) ph='등용성 수축기 isovolumetric contraction';
+    else if(u<.30) ph='구혈기 ejection';
+    else if(u<.38) ph='등용성 이완기 isovolumetric relaxation';
+  }
+  if(aA>.15&&!actV) ph='심방 수축기 atrial kick';
+  $('phase').textContent=ph;
+
+  // 지표
+  const vs=ev.filter(e=>e.k==='V'&&e.t<=t);
+  const last=vs[vs.length-1], prev=vs[vs.length-2];
+  let bpm=0;
+  if(last&&prev){ const rr=last.t-prev.t; if(rr>.15) bpm=Math.round(60/rr); }
+  if(R==='vfib'||R==='asys') bpm=0;
+  $('mHR').textContent=bpm||'—';
+  $('mPR').textContent=(R==='afib'||R==='aflutter'||R==='vt'||R==='vfib'||R==='asys'||R==='avb3')?'—'
+    :(last&&last.pr?Math.round(last.pr*1000):(R==='svt'?'—':'160'));
+  $('mQRS').textContent=(R==='vfib'||R==='asys')?'—':(last? (last.wide?'150':'90') :'90');
+  const coRel=(R==='vfib'||R==='asys')?0:Math.round((bpm*(last?last.sv:0))/(75*1.0)*100);
+  coDisp += (coRel-coDisp)*Math.min(1,dt*3);
+  $('mCO').textContent=Math.round(coDisp);
+  $('coBar').style.width=Math.max(0,Math.min(100,coDisp*0.7))+'%';
+}
+
+let showFlow=true;
+function frame(now){
+  const real=Math.min(.06,(now-lastNow)/1000); lastNow=now;
+  const dt=playing?real*speed:0;
+  simT+=dt;
+  eng.ensure(simT+1.2); eng.prune(simT-WIN-3);
+  update(simT,Math.max(dt,1e-4));
+  drawECG(simT);
+  requestAnimationFrame(frame);
+}
+
+/* ══════════════ UI ══════════════ */
+const sel=$('rhythm');
+Object.keys(RH).forEach(k=>{ const o=document.createElement('option');o.value=k;o.textContent=RH[k].n;sel.appendChild(o); });
+function applyInfo(){ const r=RH[eng.rhythm];
+  $('iName').textContent=r.n; $('iMech').textContent=r.mech; $('iEcg').textContent=r.ecg; $('iAnes').textContent=r.anes;
+  const dead=(eng.rhythm==='vfib'||eng.rhythm==='asys');
+  $('hr').disabled=dead; $('hr').style.opacity=dead?.35:1;
+  if(!dead){ $('hr').min=r.min; $('hr').max=r.max; $('hr').value=eng.hr; }
+  $('hrv').textContent=dead?'—':(eng.hr+' bpm');
+  if(eng.rhythm==='avb3') $('hrv').textContent=eng.hr+' bpm (심방)';
+}
+sel.addEventListener('change',()=>{ eng.setRhythm(sel.value,simT); applyInfo(); });
+$('hr').addEventListener('input',e=>{ eng.setHR(+e.target.value,simT);
+  $('hrv').textContent=(+e.target.value)+(eng.rhythm==='avb3'?' bpm (심방)':' bpm'); });
+$('play').addEventListener('click',e=>{ playing=!playing; e.target.textContent=playing?'일시정지':'재생'; });
+$('speed').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  speed=+b.dataset.s; [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b)); });
+function tog(id,fn){ $(id).addEventListener('click',e=>{ const on=!e.target.classList.contains('on');
+  e.target.classList.toggle('on',on); fn(on); }); }
+tog('tLabel',on=>{ $('labels').style.display=on?'':'none'; });
+tog('tCond',on=>{ $('cond').style.display=on?'':'none'; });
+tog('tFlow',on=>{ showFlow=on; });
+
+resize(); eng.reset(0); eng.setRhythm('nsr',0); applyInfo();
+requestAnimationFrame(frame);
+
+/* ══════════════ 모식도 (Lewis ladder diagram) ══════════════ */
+(function(){
+const X0=46, SPS=136, W=660, RIGHT=W-18, EB=100, MV=34, TM=(RIGHT-X0)/SPS;
+const A0=146, A1=166, V0=186, V1=210;
+const XX=t=>X0+t*SPS;
+const SIN='#9fc4ea', ECT='#ff7a85', BLK='#e0555c', GRN='#25e07f', VIO='#c4b5fd', DIM='#8ba2c0', ORG='#ffb457';
+const L=(x1,y1,x2,y2,c,w,ex)=>'<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+
+  '" y2="'+y2.toFixed(1)+'" stroke="'+c+'" stroke-width="'+(w||2)+'" stroke-linecap="round" '+(ex||'')+'/>';
+const T=(x,y,s,c,a,f)=>'<text x="'+x.toFixed(1)+'" y="'+y+'" text-anchor="'+(a||'middle')+
+  '" font-size="'+(f||10.5)+'" font-weight="700" fill="'+c+'">'+s+'</text>';
+const Tt=(t,y,s,c,a,f)=>T(XX(t),y,s,c,a,f);
+const span=(t1,t2,y,lab,c)=>{const x1=XX(t1),x2=XX(t2);
+  return L(x1,y,x2,y,c,1.5)+L(x1,y-4,x1,y+4,c,1.5)+L(x2,y-4,x2,y+4,c,1.5)+T((x1+x2)/2,y-7,lab,c,'middle',10);};
+const block=(x,y,c)=>L(x-4,y-4,x+4,y+4,c,2.4)+L(x+2,y-4,x+10,y+4,c,2.4);
+
+function wf(ev,t){ let v=0;
+  for(const e of ev){ const d=t-e.t; if(d<-.15||d>.62) continue;
+    if(e.k==='A'){ if(e.p) v+= e.ect ? (G(t,e.t+.042,.018,.20)+G(t,e.t+.082,.022,-.07))
+                                     : G(t,e.t+.045,.024,.14); }
+    else if(e.wide) v+=G(t,e.t+.030,.022,.40)+G(t,e.t+.065,.026,1.10)
+                      +G(t,e.t+.140,.038,-.45)+G(t,e.t+.38,.070,-.36);
+    else v+=G(t,e.t+.018,.009,-.07)+G(t,e.t+.045,.012,1.05)+G(t,e.t+.075,.013,-.22)
+           +G(t,e.t+.30,.048,.30);
+  } return v; }
+
+function grid(){
+  let s='<rect x="'+X0+'" y="40" width="'+(RIGHT-X0)+'" height="76" fill="#080f1a"/>', m='', M='';
+  for(let t=0;t<=TM;t+=0.04){ const x=XX(t); if(x>RIGHT) break; m+='M'+x.toFixed(1)+',40V116'; }
+  for(let y=EB;y>=40;y-=3.4) m+='M'+X0+','+y.toFixed(1)+'H'+RIGHT;
+  for(let y=EB;y<=116;y+=3.4) m+='M'+X0+','+y.toFixed(1)+'H'+RIGHT;
+  for(let t=0;t<=TM;t+=0.2){ const x=XX(t); if(x>RIGHT) break; M+='M'+x.toFixed(1)+',40V116'; }
+  M+='M'+X0+','+EB+'H'+RIGHT;
+  return s+'<path d="'+m+'" stroke="rgba(37,224,127,.06)" stroke-width="1" fill="none"/>'
+          +'<path d="'+M+'" stroke="rgba(37,224,127,.16)" stroke-width="1" fill="none"/>'
+          +T(RIGHT-4,52,'가로 작은 눈금 0.04초 · 세로 0.1 mV',DIM,'end',9.5);
+}
+function evOf(bs){ const ev=[];
+  bs.forEach(b=>{
+    if(b.k==='v'){ ev.push({k:'V',t:b.t,wide:true}); return; }
+    ev.push({k:'A',t:b.t,p:true,ect:b.k==='a'});
+    if(b.k!=='b') ev.push({k:'V',t:b.t+b.pr,wide:false});
+  }); return ev; }
+function seg(ev,xa,xb,c){ let d='';
+  xa=Math.max(X0,Math.round(xa)); xb=Math.min(RIGHT,Math.round(xb));
+  for(let x=xa;x<=xb;x++){ const y=EB-wf(ev,(x-X0)/SPS)*MV; d+=(x===xa?'M':'L')+x+','+y.toFixed(1); }
+  return '<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="2" stroke-linejoin="round"/>'; }
+function wave(ev,hl){ let s=seg(ev,X0,RIGHT,GRN);
+  (hl||[]).forEach(h=>{ s+=seg(ev,XX(h[0]),XX(h[1]),h[2]); }); return s; }
+function base(){
+  return '<rect x="'+X0+'" y="'+A0+'" width="'+(RIGHT-X0)+'" height="'+(V1-A0)+'" fill="#0b1420" stroke="#243449"/>'
+   +L(X0,A1,RIGHT,A1,'#243449',1)+L(X0,V0,RIGHT,V0,'#243449',1)
+   +T(X0-8,A0+14,'A',DIM,'end',11)+T(X0-8,A1+14,'AV',DIM,'end',11)+T(X0-8,V0+16,'V',DIM,'end',11); }
+function guides(bs){ let s='';
+  bs.forEach(b=>{ if(b.k==='b') return; const t=(b.k==='v')?b.t:b.t+b.pr;
+    s+=L(XX(t),116,XX(t),A0,'#26374d',1,'stroke-dasharray="3 4"'); }); return s; }
+function ladder(bs){ let s='';
+  bs.forEach(b=>{
+    const c=(b.k==='a'||b.k==='v')?ECT:SIN;
+    if(b.k==='v'){ const x=XX(b.t);
+      s+='<circle cx="'+x.toFixed(1)+'" cy="200" r="4" fill="'+ECT+'"/>';
+      s+=L(x,200,XX(b.t+.10),V1,c,2.2)+L(x,200,XX(b.t+.07),V0,c,2.2);
+      s+=L(XX(b.t+.07),V0,XX(b.t+.22),A1+7,c,2.2,'stroke-dasharray="4 3"');
+      s+=block(XX(b.t+.22),A1+7,BLK); return; }
+    s+='<circle cx="'+XX(b.t).toFixed(1)+'" cy="'+A0+'" r="3.4" fill="'+c+'"/>';
+    s+=L(XX(b.t),A0,XX(b.t+.10),A1,c,2.2);
+    if(b.k==='b'){ s+=L(XX(b.t+.10),A1,XX(b.t+.19),A1+13,c,2.2)+block(XX(b.t+.19),A1+13,BLK); return; }
+    s+=L(XX(b.t+.10),A1,XX(b.t+b.pr),V0,c,2.2)+L(XX(b.t+b.pr),V0,XX(b.t+b.pr+.09),V1,c,2.2);
+    if(b.k==='a'){
+      s+=L(XX(b.t)-6,A0-9,XX(b.t)-44,A0-9,ECT,1.6,'stroke-dasharray="4 3"');
+      s+='<path d="M'+(XX(b.t)-44).toFixed(1)+','+(A0-9)+' l8,-4 v8 z" fill="'+ECT+'"/>';
+      s+=T(XX(b.t)-50,A0-12,'SA node reset',ECT,'end',9.5); }
+  }); return s; }
+
+const CFG=[
+{ko:'정상 동율동 (기준 파형)',en:'Normal sinus rhythm (NSR) — reference',
+ beats:[{t:.30,k:'s',pr:.16},{t:1.16,k:'s',pr:.16},{t:2.02,k:'s',pr:.16},{t:2.88,k:'s',pr:.16},{t:3.74,k:'s',pr:.16}],
+ ann:()=>Tt(1.205,88,'P',SIN)+Tt(1.365,56,'QRS',GRN)+Tt(1.62,82,'T',VIO)
+   +span(1.16,1.32,128,'PR 0.16초 (정상 0.12–0.20초)',DIM)
+   +span(2.18,3.04,128,'RR 0.86초 = 70회/분',DIM)
+   +T(X0,246,'모든 박동이 SA node → 심방 → AV node 지연 → His속 → 좌·우각 → 퍼킨제섬유 순서로 같은 기울기로 1:1 전도됩니다.',DIM,'start',10.5),
+ crit:['<b>P파</b> 심방 탈분극(atrial depolarization) — 폭 <0.12초, 높이 <0.25 mV',
+   '<b>PR 간격</b> 0.12–0.20초(작은 눈금 3–5칸). 대부분이 방실결절 지연 시간이며, 이 지연이 심실 충만 시간을 만듭니다',
+   '<b>QRS</b> <0.12초 — His-Purkinje를 통한 빠른 동시 전도',
+   '<b>T파</b> 심실 재분극(ventricular repolarization), 보통 QRS와 같은 방향(concordant)',
+   '<b>율동</b> RR 규칙적, 60–100회/분, P:QRS = 1:1']},
+
+{ko:'심방조기수축 (APC)',en:'Atrial premature contraction (APC / PAC)',
+ beats:[{t:.30,k:'s',pr:.16},{t:1.16,k:'s',pr:.16},{t:2.02,k:'s',pr:.16},{t:2.58,k:'a',pr:.20},{t:3.44,k:'s',pr:.16}],
+ hl:[[2.50,3.14,ORG]],
+ ann:()=>Tt(2.625,84,'P′ 이소성 P파',ECT)+Tt(2.85,56,'좁은 QRS (narrow)',GRN)
+   +span(1.32,2.18,128,'RR 0.86초',DIM)+span(2.18,2.78,128,'조기 결합간격 coupling interval',DIM)
+   +span(2.18,3.60,228,'불완전 보상성 휴지기 non-compensatory · 1.42초 < 2 × RR (1.72초)',ORG)
+   +T(X0,246,'역행 전도가 동방결절을 재설정하므로 다음 동성 박동이 예정보다 일찍 나옵니다.',DIM,'start',10.5),
+ crit:['<b>기전</b> 심방 이소성 초점(ectopic atrial focus)의 조기 발화 — 이후 정상 전도로를 그대로 이용',
+   '<b>P′파</b> 예정보다 이르고 동성 P와 모양이 다름. 선행 T파에 겹치면 T파가 뾰족해 보입니다(P′ on T)',
+   '<b>QRS</b> 좁음(<0.12초). 단, 각(bundle branch)이 아직 불응기면 편위전도(aberrant conduction)로 넓어져 PVC와 혼동될 수 있습니다',
+   '<b>휴지기</b> 불완전 보상성(non-compensatory) — 동방결절 재설정(sinus node reset)으로 P–P′–P < 2 × RR',
+   '<b>비전도 APC</b> (blocked / non-conducted APC) 방실결절 불응기에 걸리면 P′만 있고 QRS가 없어 갑작스러운 휴지기로 보입니다',
+   '<b>임상</b> 대개 양성. 빈발하면 심방세동(AF)·심방빈맥의 전조. 카페인, 스트레스, 저칼륨·저마그네슘혈증, 심방 확장, 중심정맥관 끝의 심방 자극을 확인합니다']},
+
+{ko:'심실조기수축 (PVC)',en:'Premature ventricular contraction (PVC / VPC)',
+ beats:[{t:.30,k:'s',pr:.16},{t:1.16,k:'s',pr:.16},{t:2.02,k:'s',pr:.16},{t:2.52,k:'v'},{t:2.88,k:'b',pr:.16},{t:3.74,k:'s',pr:.16}],
+ hl:[[2.44,3.10,ECT]],
+ ann:()=>Tt(2.60,44,'넓고 기괴한 QRS ≥0.12초 (wide & bizarre)',ECT)
+   +Tt(2.52,56,'선행 P파 없음',ECT)+Tt(3.00,126,'T파 반대 방향 discordant T',VIO)
+   +span(1.32,2.18,128,'RR 0.86초',DIM)
+   +span(2.18,3.90,228,'완전 보상성 휴지기 full compensatory pause = 2 × RR (1.72초)',ORG)
+   +T(XX(3.05),246,'동성 P파는 예정대로 진행하지만 심실 불응기에 걸려 차단됩니다.',BLK,'middle',10.5),
+ crit:['<b>기전</b> 심실 이소성 초점(ventricular ectopic focus)의 조기 발화 — His-Purkinje를 우회해 심실근을 직접 타고 퍼지므로 전도가 느립니다',
+   '<b>선행 P파 없음</b>, QRS ≥0.12초로 넓고 기괴함(wide & bizarre)',
+   '<b>T파</b> QRS와 반대 방향(discordant T wave)',
+   '<b>휴지기</b> 완전 보상성(full compensatory pause) — 동방결절은 재설정되지 않고 그 사이 동성 P파가 불응기에 차단되어 R–R–R = 2 × RR',
+   '<b>형태 분류</b> 이단맥(bigeminy)·삼단맥(trigeminy)·연발(couplet), 단일초점(unifocal)·다초점(multifocal). R-on-T 현상은 VT/VF를 유발할 수 있습니다',
+   '<b>혈역학</b> 충만 시간 부족 → 일회박출량 감소 → 맥박 결손(pulse deficit), SpO₂ 파형이 한 박동 건너뜁니다',
+   '<b>마취 중 확인</b> 저칼륨·저마그네슘혈증, 저산소증, 고탄산혈증, 얕은 마취, 심근 허혈, 중심정맥관·폐동맥관 끝의 심실 자극']},
+
+{ko:'1도 방실차단',en:'First-degree atrioventricular block (1° AV block)',
+ beats:[{t:.25,k:'s',pr:.30},{t:1.11,k:'s',pr:.30},{t:1.97,k:'s',pr:.30},{t:2.83,k:'s',pr:.30},{t:3.69,k:'s',pr:.30}],
+ ann:()=>span(1.11,1.41,128,'PR 0.30초',ORG)+span(1.97,2.27,128,'PR 0.30초 (변하지 않음)',ORG)
+   +Tt(1.155,88,'P',SIN)+Tt(1.455,56,'QRS',GRN)
+   +T(X0,246,'AV 층을 지나는 선의 기울기가 완만합니다 = 방실결절 통과 시간이 길다는 뜻이며, 탈락 박동은 없습니다.',DIM,'start',10.5),
+ crit:['<b>기전</b> 대부분 방실결절(AV node) 내 전도 지연. 모든 심방 자극이 결국 심실로 전달됩니다',
+   '<b>PR</b> >0.20초로 연장되며 박동마다 일정 — PR이 점점 길어지다 탈락하는 Wenckebach(2도 1형)와 감별합니다',
+   '<b>P:QRS = 1:1</b>, 탈락 박동 없음, RR 규칙적, QRS 폭은 대개 정상',
+   '<b>악화 인자</b> β차단제, calcium channel blocker, digoxin, amiodarone, 미주신경 항진, dexmedetomidine, 고칼륨혈증',
+   '<b>주의</b> PR이 매우 길면(>0.30초) 심방수축이 이완기 초기로 밀려 심방수축 기여(atrial kick) 효율이 떨어질 수 있습니다']}
+];
+
+function mini(kind){
+  const w=290,h=132,x0=8,rgt=w-8,sps=132,eb=78,mv=24;
+  const XM=t=>x0+t*sps;
+  const bs = kind==='apc'
+    ? [{t:.08,k:'s',pr:.16},{t:.55,k:'a',pr:.20},{t:1.25,k:'s',pr:.16}]
+    : [{t:.08,k:'s',pr:.16},{t:.62,k:'v'},{t:.78,k:'b',pr:.16},{t:1.48,k:'s',pr:.16}];
+  const ev=evOf(bs), col = kind==='apc'?ORG:ECT;
+  const hl = kind==='apc'?[.49,1.10]:[.55,1.16];
+  const line=(xa,xb,c)=>{ let d=''; xa=Math.max(x0,Math.round(xa)); xb=Math.min(rgt,Math.round(xb));
+    for(let x=xa;x<=xb;x++){ const y=eb-wf(ev,(x-x0)/sps)*mv; d+=(x===xa?'M':'L')+x+','+y.toFixed(1); }
+    return '<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="1.9" stroke-linejoin="round"/>'; };
+  const br=(t1,t2,y,lab)=>{const a=XM(t1),b=XM(t2);
+    return L(a,y,b,y,ORG,1.3)+L(a,y-3.5,a,y+3.5,ORG,1.3)+L(b,y-3.5,b,y+3.5,ORG,1.3)
+      +T((a+b)/2,y-5,lab,ORG,'middle',9.3);};
+  let s='<svg viewBox="0 0 '+w+' '+h+'">'
+    +'<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="#080f1a"/>'
+    +L(x0,eb,rgt,eb,'rgba(37,224,127,.16)',1)
+    +line(x0,rgt,GRN)+line(XM(hl[0]),XM(hl[1]),col);
+  if(kind==='apc'){
+    s+=T(XM(.595),eb-.20*mv-7,'P′',col,'middle',11)
+      +T(XM(.80),34,'좁은 QRS <0.12초',GRN,'middle',9.6)
+      +br(.24,1.41,116,'휴지기 1.17초 < 2 × RR');
+  }else{
+    s+=T(XM(.55),eb-9,'P 없음',col,'end',9.6)
+      +T(XM(.76),30,'넓은 QRS ≥0.12초',col,'middle',9.6)
+      +T(XM(1.02),eb+22,'반대 T',VIO,'middle',9.3)
+      +br(.24,1.64,116,'휴지기 1.40초 = 2 × RR');
+  }
+  return s+'</svg>';
+}
+function cmpCard(){
+  const rows=[
+   ['선행 P파 <span>preceding P</span>','이른 P′파 있음 (동성 P와 모양 다름)','없음'],
+   ['QRS 폭 <span>QRS duration</span>','좁음 &lt;0.12초 — 정상 전도로 이용','넓음 ≥0.12초, 기괴한 모양'],
+   ['T파 방향 <span>T wave axis</span>','QRS와 같은 방향 (concordant)','QRS와 반대 방향 (discordant)'],
+   ['휴지기 <span>pause</span>','불완전 보상성 &lt; 2 × RR','완전 보상성 = 2 × RR'],
+   ['기시 부위 <span>origin</span>','심방 이소성 초점','심실 이소성 초점'],
+   ['임상 의미 <span>significance</span>','빈발 시 심방세동(AF) 전조','맥박 결손, R-on-T 시 VT/VF 위험']];
+  return '<div class="schcard"><h3>APC vs PVC — 파형 감별<span>Atrial versus ventricular premature contraction</span></h3>'
+    +'<div class="cmp">'
+    +'<div><div class="cmphd" style="color:'+ORG+'">APC · 심방조기수축</div>'+mini('apc')+'</div>'
+    +'<div><div class="cmphd" style="color:'+ECT+'">PVC · 심실조기수축</div>'+mini('pvc')+'</div>'
+    +'</div><table class="gl"><thead><tr><th>구분</th><th>APC</th><th>PVC</th></tr></thead><tbody>'
+    +rows.map(r=>'<tr><td class="ky">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')
+    +'</tbody></table></div>';
+}
+
+document.getElementById('schWrap').innerHTML = cmpCard() + CFG.map(c=>{
+  const svg='<svg viewBox="0 0 '+W+' 262" role="img" aria-label="'+c.ko+' 모식도">'
+    +grid()+wave(evOf(c.beats),c.hl)+guides(c.beats)+base()+ladder(c.beats)+c.ann()+'</svg>';
+  return '<div class="schcard"><h3>'+c.ko+'<span>'+c.en+'</span></h3>'
+    +'<div class="schscroll">'+svg+'</div>'
+    +'<ul class="crit">'+c.crit.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>';
+}).join('');
+
+const GL=[
+['동방결절','sinoatrial node','SA node'],['방실결절','atrioventricular node','AV node'],
+['히스속','bundle of His','—'],['좌각 / 우각','left / right bundle branch','LBB / RBB'],
+['퍼킨제섬유','Purkinje fibers','—'],['탈분극 / 재분극','depolarization / repolarization','—'],
+['불응기','refractory period','—'],['이소성 초점','ectopic focus','—'],
+['심방조기수축','atrial premature contraction','APC / PAC'],
+['심실조기수축','premature ventricular contraction','PVC / VPC'],
+['보상성 휴지기','compensatory pause','—'],['조기 결합간격','coupling interval','—'],
+['편위전도','aberrant conduction','—'],['회귀','reentry','—'],
+['방실해리','atrioventricular dissociation','AV dissociation'],
+['심방수축 기여','atrial kick','—'],['등용성 수축기','isovolumetric contraction','—'],
+['구혈기','ejection phase','—'],['이완기말 용적','end-diastolic volume','EDV'],
+['일회박출량','stroke volume','SV'],['심박출량','cardiac output','CO'],
+['맥박 결손','pulse deficit','—'],['삼첨판 협부','cavotricuspid isthmus','CTI'],
+['고주파 절제술','radiofrequency catheter ablation','RFA'],
+['동기화 심장율동전환','synchronized cardioversion','—'],['제세동','defibrillation','—']];
+document.getElementById('glBody').innerHTML =
+  GL.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('');
+})();
+/* ══════════════ 부정맥 지도 (ECG + 기시 부위) ══════════════ */
+(function(){
+const RED='#ff5d73', GRN='#25e07f', DIM='#8ba2c0', AMB='#ffb457';
+const NS=(x,y)=>x.toFixed(1)+','+y.toFixed(1);
+const LN=(x1,y1,x2,y2,c,w,ex)=>'<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+
+  '" y2="'+y2.toFixed(1)+'" stroke="'+c+'" stroke-width="'+(w||2)+'" stroke-linecap="round" '+(ex||'')+'/>';
+const TX=(x,y,s,c,a,f)=>'<text x="'+x+'" y="'+y+'" text-anchor="'+(a||'start')+'" font-size="'+(f||9.6)+
+  '" font-weight="700" fill="'+c+'">'+s+'</text>';
+
+/* ---- 미니 심장 ---- */
+const PMYO="M100,180 C96,250 105,335 150,398 C185,447 235,450 265,420 C320,368 340,290 336,205 C333,150 305,128 260,124 C205,119 145,128 118,145 C104,154 100,166 100,180 Z";
+const PRA="M118,175 C118,150 140,140 165,142 C190,145 200,165 198,190 C196,215 175,232 150,230 C125,228 118,205 118,175 Z";
+const PLA="M248,168 C248,146 268,137 292,139 C318,141 328,158 326,182 C324,208 306,222 282,222 C258,222 248,198 248,168 Z";
+const PRV="M140,255 C128,298 134,344 160,380 C175,396 192,388 194,368 C190,325 198,288 194,258 C178,248 154,246 140,255 Z";
+const PLV="M226,256 C216,306 224,352 246,386 C278,356 296,308 294,256 C276,244 244,244 226,256 Z";
+function ray(x,y,d){ const r=Math.PI*d/180;
+  return LN(x+Math.cos(r)*11,y+Math.sin(r)*11,x+Math.cos(r)*17,y+Math.sin(r)*17,RED,2); }
+function mark(m){
+  if(m[0]==='f') return '<circle cx="'+m[1]+'" cy="'+m[2]+'" r="9" fill="none" stroke="'+RED+'" stroke-width="2.2"/>'
+    +'<circle cx="'+m[1]+'" cy="'+m[2]+'" r="3.8" fill="'+RED+'"/>'+ray(m[1],m[2],-90)+ray(m[1],m[2],30)+ray(m[1],m[2],150);
+  if(m[0]==='l') return '<g transform="rotate('+(m[5]||0)+' '+m[1]+' '+m[2]+')">'
+    +'<ellipse cx="'+m[1]+'" cy="'+m[2]+'" rx="'+m[3]+'" ry="'+m[4]+'" fill="none" stroke="'+RED+'" stroke-width="2.6" stroke-dasharray="8 5"/>'
+    +'<path d="M'+NS(m[1]+m[3]-6,m[2]-3)+' L'+NS(m[1]+m[3]+6,m[2]-3)+' L'+NS(m[1]+m[3],m[2]+9)+' Z" fill="'+RED+'"/></g>';
+  if(m[0]==='b') return LN(m[1]-6,m[2]-6,m[1]+6,m[2]+6,RED,3)+LN(m[1]+3,m[2]-6,m[1]+15,m[2]+6,RED,3);
+  return '<circle cx="'+m[1]+'" cy="'+m[2]+'" r="'+(m[3]||4.5)+'" fill="'+RED+'" opacity=".9"/>';
+}
+function heart(marks){
+  let s='<svg viewBox="92 112 268 296" role="img">'
+   +'<path d="'+PMYO+'" fill="#7d565b" stroke="#5d3d42" stroke-width="2"/>'
+   +'<path d="'+PRA+'" fill="#1d3a52" stroke="#122736"/><path d="'+PLA+'" fill="#5a2029" stroke="#3d1218"/>'
+   +'<path d="'+PRV+'" fill="#1d3a52" stroke="#122736"/><path d="'+PLV+'" fill="#5a2029" stroke="#3d1218"/>'
+   +LN(348,168,326,180,'#a03e46',11)+LN(350,204,326,196,'#a03e46',11)
+   +'<g fill="none" stroke="#c9a24a" stroke-width="2.6" opacity=".85">'
+   +'<path d="M182,152 C180,180 190,212 206,234"/><path d="M208,240 L210,262"/>'
+   +'<path d="M211,262 C224,290 238,330 248,366"/><path d="M209,262 C200,292 192,330 186,364"/></g>'
+   +'<circle cx="182" cy="152" r="6" fill="#c9a24a"/><circle cx="208" cy="238" r="5.5" fill="#c9a24a"/>';
+  marks.forEach(m=>{ s+=mark(m); });
+  return s+'</svg>';
+}
+
+/* ---- 미니 ECG ---- */
+const W=340,H=118,X0=6,R0=334,SPS=126,EB=66,MV=22,TSPAN=(R0-X0)/SPS;
+function hs(t){const x=Math.sin(t*1271.73)*43758.5453;return (x-Math.floor(x))-.5;}
+function WF(ev,t,bl){
+  let v=0;
+  if(bl==='vf'){ const m=.72+.32*Math.sin(2*Math.PI*.83*t);
+    return m*(.50*Math.sin(2*Math.PI*4.9*t)+.33*Math.sin(2*Math.PI*7.7*t+1.1)+.23*Math.sin(2*Math.PI*11.9*t+2.3)); }
+  if(bl==='af') v+=.05*Math.sin(2*Math.PI*7.3*t)+.035*Math.sin(2*Math.PI*11.9*t+1)+.028*Math.sin(2*Math.PI*5.1*t+2.2);
+  if(bl==='fl'){ const u=(t*5)%1; v+= u<.78 ? (.10-u*.30) : (-.13+(u-.78)/.22*.36); }
+  for(const e of ev){ const d=t-e.t; if(d<-.15||d>.62) continue; const a=e.a||1;
+    switch(e.m){
+      case 'p':  v+=G(t,e.t+.045,.024,.14); break;
+      case 'p2': v+=G(t,e.t+.042,.018,.20)+G(t,e.t+.082,.022,-.07); break;
+      case 'pi': v+=G(t,e.t+.045,.022,-.13); break;
+      case 'n':  v+=G(t,e.t+.018,.009,-.07)+G(t,e.t+.045,.012,1.05*a)+G(t,e.t+.075,.013,-.22)+G(t,e.t+.30,.048,.30); break;
+      case 'w':  v+=G(t,e.t+.030,.022,.40*a)+G(t,e.t+.065,.026,1.10*a)+G(t,e.t+.140,.038,-.45*a)+G(t,e.t+.38,.070,-.36); break;
+      case 'wn': v+=G(t,e.t+.035,.024,-.30)+G(t,e.t+.075,.030,-1.00)+G(t,e.t+.150,.036,.28)+G(t,e.t+.38,.070,.34); break;
+      case 'd':  v+=G(t,e.t+.030,.030,.32)+G(t,e.t+.080,.014,.95)+G(t,e.t+.110,.013,-.18)+G(t,e.t+.33,.050,.28); break;
+    }
+  }
+  return v+hs(t*3.1)*.010;
+}
+function strip(ev,bl,rate,hl){
+  let g='',m='';
+  for(let t=0;t<=TSPAN;t+=.2){ const x=X0+t*SPS; if(x>R0)break; m+='M'+x.toFixed(1)+',14V'+(H-14); }
+  g+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#080f1a"/>'
+   +'<path d="'+m+'" stroke="rgba(37,224,127,.09)" stroke-width="1" fill="none"/>'
+   +LN(X0,EB,R0,EB,'rgba(37,224,127,.14)',1);
+  const seg=(xa,xb,c)=>{ let d=''; xa=Math.max(X0,Math.round(xa)); xb=Math.min(R0,Math.round(xb));
+    for(let x=xa;x<=xb;x++){ const y=EB-WF(ev,(x-X0)/SPS,bl)*MV; d+=(x===xa?'M':'L')+x+','+y.toFixed(1); }
+    return '<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="1.9" stroke-linejoin="round"/>'; };
+  g+=seg(X0,R0,GRN);
+  (hl||[]).forEach(h=>{ g+=seg(X0+h[0]*SPS,X0+h[1]*SPS,h[2]||RED); });
+  if(rate) g+=TX(R0,15,rate,DIM,'end',9.6);
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>';
+}
+const B=(ts,m,a)=>ts.map(t=>({t:t,m:m,a:a}));
+
+/* ---- 부정맥 목록 ---- */
+const A=[
+{ko:'동빈맥 · 부적절 동빈맥',en:'Sinus tachycardia · Inappropriate sinus tachycardia (IST)',
+ org:'동방결절(SA node) — 우심방 상부, 상대정맥 접합부',
+ mech:'자동능 항진 (enhanced automaticity)',
+ ecg:'정상 형태의 P–QRS–T가 1:1로 규칙적, 100회/분 초과',
+ tx:'원인 교정이 우선(통증·저혈량·발열·저산소). IST는 β차단제·ivabradine, 난치성에서 동방결절 변형술',
+ marks:[['f',182,152]], ev:[].concat(B([.10,.56,1.02,1.48,1.94,2.40],'p'),B([.24,.70,1.16,1.62,2.08,2.54],'n')),
+ rate:'약 130회/분'},
+
+{ko:'심방빈맥',en:'Atrial tachycardia (AT)',
+ org:'심방 내 이소성 초점 — 분계릉(crista terminalis), 심방이, 폐정맥, 삼첨판·승모판 고리',
+ mech:'국소 자동능 항진, 촉발 활동 또는 미세회귀(micro-reentry)',
+ ecg:'동성과 다른 모양의 P′파, 규칙적 150–250회/분, 시작 시 점진적 가속(warm-up)',
+ tx:'β차단제·칼슘통로차단제, 초점에 대한 고주파 절제술(RFA)',
+ marks:[['f',146,176]], ev:[].concat(B([.08,.44,.80,1.16,1.52,1.88,2.24,2.60],'p2'),B([.20,.56,.92,1.28,1.64,2.00,2.36],'n')),
+ rate:'약 165회/분', hl:[[.02,2.56,AMB]]},
+
+{ko:'심방조동 (전형적)',en:'Typical atrial flutter (AFL)',
+ org:'우심방 — 삼첨판 협부(cavotricuspid isthmus, CTI)를 도는 거대회귀회로',
+ mech:'해부학적 협부에 의존하는 macro-reentry (대개 반시계 방향)',
+ ecg:'II·III·aVF의 톱니 모양 조동파(F wave) 약 300회/분, 2:1·4:1 전도',
+ tx:'CTI 선형 절제술이 표적. 불안정 시 동기화 심장율동전환(50–100 J)',
+ marks:[['l',158,188,34,40,0],['f',150,228]], ev:B([.30,1.10,1.90],'n'), bl:'fl', rate:'심방 300 / 심실 75회/분'},
+
+{ko:'심방세동',en:'Atrial fibrillation (AF)',
+ org:'폐정맥 기시부(pulmonary vein ostia)의 이소성 발화 + 좌심방 기질',
+ mech:'다중 소용돌이(multiple wavelets)·회전자(rotor)에 의한 무질서한 심방 흥분',
+ ecg:'P파 소실, 기저선 f파, 완전히 불규칙한 RR, 좁은 QRS',
+ tx:'폐정맥 격리술(PVI)이 대표 표적. 항응고, 심박수·율동 조절',
+ marks:[['f',340,170],['f',342,206],['d',300,160,4],['d',282,152,3.5]],
+ ev:B([.18,.66,1.40,1.78,2.44],'n'), bl:'af', rate:'불규칙, 약 110회/분'},
+
+{ko:'방실결절 회귀성 빈맥',en:'AV nodal re-entrant tachycardia (AVNRT)',
+ org:'방실결절(AV node) — Koch 삼각 내 빠른 경로·느린 경로 이중 전도로',
+ mech:'결절 내 회귀(reentry). 심방과 심실이 거의 동시에 흥분',
+ ecg:'규칙적인 좁은 QRS 빈맥 150–250회/분, P파는 QRS에 묻히거나 가성 r′·S로 보임',
+ tx:'미주신경 자극 → adenosine 6→12 mg. 절제 표적은 느린 경로(slow pathway)',
+ marks:[['l',208,240,16,13,0]], ev:B([.12,.44,.76,1.08,1.40,1.72,2.04,2.36],'n'), rate:'약 190회/분'},
+
+{ko:'WPW 증후군 · 방실 회귀성 빈맥',en:'WPW syndrome · AV re-entrant tachycardia (AVRT)',
+ org:'방실 고리를 가로지르는 부전도로(accessory pathway, Kent bundle) — 좌측 자유벽이 가장 흔함',
+ mech:'부전도로와 정상 전도계가 이루는 거대회귀. 순방향(orthodromic)은 좁은 QRS, 역방향(antidromic)은 넓은 QRS',
+ ecg:'기저 리듬에서 짧은 PR(<0.12초) + 델타파(delta wave) + 넓어진 QRS',
+ tx:'부전도로 절제가 근치. AF 동반 시 AV node 차단제(digoxin·verapamil) 금기 — 심실세동 위험',
+ marks:[['f',300,234],['l',272,268,44,56,-18]],
+ ev:[].concat(B([.15,1.05,1.95],'p'),B([.24,1.14,2.04],'d')), rate:'약 67회/분 (예방흥분)', hl:[[.20,.45],[1.10,1.35],[2.00,2.25]]},
+
+{ko:'접합부 리듬 · 접합부 빈맥',en:'Junctional rhythm · Junctional tachycardia',
+ org:'방실접합부(AV junction) — 방실결절 및 His속 근위부',
+ mech:'상위 조율기 억제 시의 이탈 리듬 또는 접합부 자동능 항진(digoxin 중독, 심장수술 후)',
+ ecg:'P파 소실 또는 역행 P파(II에서 음성, QRS 직전·직후), 좁은 QRS. 이탈 40–60, 가속 60–100회/분',
+ tx:'원인 제거. 서맥성이면 atropine·pacing, digoxin 중독이면 약제 중단',
+ marks:[['f',208,240]], ev:[].concat(B([.14,1.00,1.86,2.72],'pi'),B([.20,1.06,1.92],'n')), rate:'약 70회/분'},
+
+{ko:'우심실유출로 심실빈맥',en:'RVOT ventricular tachycardia (RVOT VT)',
+ org:'우심실 유출로(right ventricular outflow tract) — 폐동맥판 바로 아래',
+ mech:'cAMP 매개 촉발 활동(triggered activity). 구조적 심질환 없는 젊은 환자에서 운동·카테콜아민에 유발',
+ ecg:'좌각차단(LBBB) 형태의 넓은 QRS + 하방 축(inferior axis), 단형성',
+ tx:'예후 양호. β차단제·verapamil, 초점 절제 성공률 높음',
+ marks:[['f',192,258]], ev:B([.10,.45,.80,1.15,1.50,1.85,2.20,2.55],'w'), rate:'약 170회/분', hl:[[.02,2.58]]},
+
+{ko:'허혈성 심실빈맥 (반흔 회귀)',en:'Ischaemic scar-related ventricular tachycardia',
+ org:'좌심실 — 심근경색 반흔의 경계부(border zone) 내 완서 전도 협부',
+ mech:'생존 심근 다발 사이의 회귀(reentry). 구조적 심질환에서 가장 흔한 VT',
+ ecg:'단형성 넓은 QRS 빈맥, 방실 해리·융합박동(fusion beat)·포획박동(capture beat)이 진단 단서',
+ tx:'불안정 시 동기화 심장율동전환, 안정 시 amiodarone. 반흔 협부 절제·ICD',
+ marks:[['l',266,334,26,24,0],['d',288,300,4]],
+ ev:B([.12,.50,.88,1.26,1.64,2.02,2.40],'wn'), rate:'약 158회/분', hl:[[.02,2.58]]},
+
+{ko:'각지 회귀성 심실빈맥',en:'Bundle branch re-entry VT (BBR-VT)',
+ org:'His-Purkinje 전도계 — 우각과 좌각이 이루는 거대회귀회로',
+ mech:'확장성 심근증·판막수술 후 전도계 질환에서 우각을 하행, 좌각을 상행하는 회귀',
+ ecg:'전형적 좌각차단 형태의 매우 규칙적인 넓은 QRS 빈맥',
+ tx:'약물 반응이 나쁘며 우각 절제로 근치 가능. 대개 ICD 병행',
+ marks:[['l',210,312,20,48,0]], ev:B([.08,.42,.76,1.10,1.44,1.78,2.12,2.46],'w',.85), rate:'약 176회/분', hl:[[.02,2.58]]},
+
+{ko:'심실세동',en:'Ventricular fibrillation (VF)',
+ org:'심실 전체 — 다중 소용돌이에 의한 무질서한 흥분',
+ mech:'급성 허혈, R-on-T, 전해질 이상, 유전성 부정맥이 유발',
+ ecg:'식별 가능한 QRS 없이 불규칙하게 진동하는 파형, 시간이 지나며 진폭 감소',
+ tx:'즉시 제세동(이상성 120–200 J) + 고품질 흉부압박, epinephrine 1 mg q3–5분, amiodarone 300 mg',
+ marks:[['d',160,300,5],['d',180,340,4],['d',250,300,5],['d',272,350,4],['d',210,330,4],['d',290,270,4]],
+ ev:[], bl:'vf', rate:'심박출량 0', hl:[[.02,2.58]]},
+
+{ko:'3도(완전) 방실차단',en:'Complete (third-degree) AV block',
+ org:'방실결절 또는 His속 이하 전도계의 완전 차단',
+ mech:'심방과 심실이 각각 독립된 조율기로 뛰는 방실 해리(AV dissociation)',
+ ecg:'P파와 QRS가 무관하게 진행, P–P·R–R은 각각 규칙적, 넓은 이탈 QRS 30–45회/분',
+ tx:'atropine 반응 저조 → 경피/경정맥 pacing, isoproterenol·epinephrine 주입, 영구 심박동기',
+ marks:[['b',206,252]], ev:[].concat(B([.10,.85,1.60,2.35],'p'),B([.35,1.93],'w')),
+ rate:'심방 80 / 심실 38회/분'}
+];
+
+document.getElementById('arrWrap').innerHTML = A.map(a=>
+ '<div class="arr"><h4>'+a.ko+'<span>'+a.en+'</span></h4>'
+ +'<div class="arrrow"><div class="arrheart">'+heart(a.marks)+'</div>'
+ +'<div class="arrecg">'+strip(a.ev,a.bl,a.rate,a.hl)+'</div></div>'
+ +'<div class="arrtxt"><div><b>기시 부위</b> '+a.org+'</div>'
+ +'<div><b>기전</b> '+a.mech+'</div>'
+ +'<div><b>ECG</b> '+a.ecg+'</div>'
+ +'<div><b>절제 표적 · 처치</b> '+a.tx+'</div></div></div>'
+).join('');
+})();
+</script>
+</body>
+</html>
